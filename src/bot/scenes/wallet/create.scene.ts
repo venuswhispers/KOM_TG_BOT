@@ -24,7 +24,6 @@ createWalletScene.enter(async (ctx: any) => {
     }
     ctx.session.wallet.push(wallet);
     ctx.session.walletIndex = ctx.session.wallet.length - 1;
-    console.log(ctx.session.walletIndex, ctx.session.wallet ? ctx.session.wallet.length : undefined);
 });
 
 // message handler

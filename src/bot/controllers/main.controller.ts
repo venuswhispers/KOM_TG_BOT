@@ -118,7 +118,7 @@ export const textHandler = async (ctx: any) => {
         case "Staking V1":
             return menu_staking_v1 (ctx);
         case "Staking V2": 
-            return menu_staking_v1 (ctx);
+            return menu_staking_v2 (ctx);
         case 'Staking V3 ⏰':
             return menu_staking_v3 (ctx);
         case '👈 Back To Main Menu' :
@@ -167,7 +167,6 @@ export const textHandler = async (ctx: any) => {
 
 export const callbackQuery = async (ctx: any) => {
     const selectedOption = ctx.callbackQuery.data;
-    console.log({selectedOption})
 
     if (selectedOption.includes('v3_withdraw_')) { // click withdraw button
         const [version, name, index] = selectedOption.split("_");

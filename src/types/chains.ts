@@ -19,6 +19,14 @@ export type CONTRACT = {
         address: string,
         abi: any
     },
+    STAKING_V1: {
+        address: string,
+        abi: any
+    },
+    STAKING_V2: {
+        address: string,
+        abi: any
+    },
     STAKING_V3: {
         address: string,
         abi: any

@@ -2,8 +2,10 @@ import { CHAIN, CONTRACT } from "../types";
 import KOM_ABI from './abis/KOM.json';
 import KOMV_ABI from './abis/KOMV.json';
 import LP_ABI from './abis/LP.json';
-import STAKING_V3 from './abis/STAKING_V3.json';
-import STAKING_LP from './abis/STAKING_LP.json';
+import STAKING_V1_ABI from './abis/STAKING_V1.json';
+import STAKING_V2_ABI from './abis/STAKING_V2.json';
+import STAKING_V3_ABI from './abis/STAKING_V3.json';
+import STAKING_LP_ABI from './abis/STAKING_LP.json';
 
 export const chains: Record<number, CHAIN> = {
     137: {
@@ -37,13 +39,21 @@ export const CONTRACTS: Record<number, CONTRACT> = {
             address: '0xe0a1fD98E9d151BABce27FA169Ae5D0fF180F1a4',
             abi: LP_ABI
         },
+        STAKING_V1: {
+            address: '0x453D0a593D0af91e77e590a7935894f7AB1b87ec',
+            abi: STAKING_V1_ABI
+        },
+        STAKING_V2: {
+            address: '0x8d37b12DB32E07d6ddF10979c7e3cDECCac3dC13',
+            abi: STAKING_V2_ABI
+        },
         STAKING_V3: {
             address: '0x8d34Bb43429c124E55ef52b5B1539bfd121B0C8D',
-            abi: STAKING_V3
+            abi: STAKING_V3_ABI
         },
         STAKING_LP: {
             address: '0xdf81D4ddAF2a728226f6f5e39a61BFc5236203C0',
-            abi: STAKING_LP
+            abi: STAKING_LP_ABI
         },
     },
     42161: {
@@ -59,13 +69,21 @@ export const CONTRACTS: Record<number, CONTRACT> = {
             address: '',
             abi: LP_ABI
         },
+        STAKING_V1: {
+            address: '',
+            abi: STAKING_V3_ABI
+        },
+        STAKING_V2: {
+            address: '',
+            abi: STAKING_V2_ABI
+        },
         STAKING_V3: {
             address: '0x5b63bdb6051CcB9c387252D8bd2364D7A86eFC70',
-            abi: STAKING_V3
+            abi: STAKING_V3_ABI
         },
         STAKING_LP: {
             address: '',
-            abi: STAKING_LP
+            abi: STAKING_LP_ABI
         },
     },
 }

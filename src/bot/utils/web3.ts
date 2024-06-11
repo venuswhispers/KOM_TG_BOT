@@ -1,3 +1,4 @@
+import { utils } from "ethers";
 import { chains, CONTRACTS } from "../../constants/config";
 import { STAKEV3_DETAIL_ITEM } from "../../types";
 import { getKOMTokenPrice } from "./utils";
@@ -79,6 +80,48 @@ export const getTokenBalances = async (chainId: number, address: string) => {
             komvBalance: 0.0,
             komTokenPrice: 0.0
         }
+    }
+}
+/**
+ * get stakingV3 details
+ * @param chainId 
+ * @param address 
+ * @returns 
+ */
+export const getStakingV2Details = async (chainId: number, address: string) => {
+    try {
+        const _chain = chains[chainId];
+        // web3 provider
+        const provider = new ethers.providers.JsonRpcProvider(_chain.rpc);
+        // contracts
+        const { address: STAKING_CONTRACT_ADDRESS, abi: STAKING_ABI } = CONTRACTS[chainId].STAKING_V2;
+        const _contractStaking = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, provider);
+
+        const _amount = await _contractStaking.getUserStakedTokens (address);
+        return ethers.utils.formatUnits(_amount, 8);
+    } catch (err) {
+        return '0.0';
+    }
+}
+/**
+ * get stakingV3 details
+ * @param chainId 
+ * @param address 
+ * @returns 
+ */
+export const getStakingV1Details = async (chainId: number, address: string) => {
+    try {
+        const _chain = chains[chainId];
+        // web3 provider
+        const provider = new ethers.providers.JsonRpcProvider(_chain.rpc);
+        // contracts
+        const { address: STAKING_CONTRACT_ADDRESS, abi: STAKING_ABI } = CONTRACTS[chainId].STAKING_V1;
+        const _contractStaking = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, provider);
+
+        const _amount = await _contractStaking.getUserStakedTokens (address);
+        return ethers.utils.formatUnits(_amount, 8);
+    } catch (err) {
+        return '0';
     }
 }
 /**
