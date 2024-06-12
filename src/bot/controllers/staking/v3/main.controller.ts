@@ -2,7 +2,8 @@ import {
     getPastStakingDetails,
     getStakershipDetails,
     getStakingV3StakedDetails,
-    reduceAmount
+    reduceAmount,
+    formatNumber
 } from "../../../utils";
 import { chains } from "../../../../constants/config";
 import { getNativeTokenPrice } from "../../../utils";
@@ -278,7 +279,7 @@ export const chart = async (ctx: any) => {
     // draw chart for Polygon
     let chartPolygonMsg = `\n<b>Staking Duration Chart on Polygon</b>\n<i>(Last Updated: ${chartPolygon.epoch})</i>\n\n`;
     chartPolygon.data.map((item: CHART_DATA_ITEM) => {
-        chartPolygonMsg += `- <i>${item.period}</i> = ${item.amount}KOM\n`
+        chartPolygonMsg += `- <i>${item.period}</i> = ${formatNumber(ethers.utils.formatUnits(BigInt(item.amount), 8))} $KOM\n`
     });
     const chartURLPolygon = await getChartURL (chartPolygon.data);
     chartPolygonMsg += `\n<a href='${chartURLPolygon}'>🔩 chart for Polygon</a>`;
@@ -286,7 +287,7 @@ export const chart = async (ctx: any) => {
     // draw chart for Arbitrum
     let chartArbMsg = `\n<b>Staking Duration Chart on Arbitrum</b>\n<i>(Last Updated: ${chartPolygon.epoch})</i>\n\n`;
     charArb.data.map((item: CHART_DATA_ITEM) => {
-        chartArbMsg += `- <i>${item.period}</i> = ${item.amount}KOM\n`
+        chartArbMsg += `- <i>${item.period}</i> = ${formatNumber(ethers.utils.formatUnits(BigInt(item.amount), 8))} $KOM\n`
     });
     const chartURLArb = await getChartURL (charArb.data);
     chartArbMsg += `\n<a href='${chartURLArb}'>🔩 chart for Arbitrum</a>`;
@@ -320,7 +321,7 @@ export const leaderBoard = async (ctx: any) => {
         let leaderboardMsg =
         `🌹 <b>Top 50 KOM Stakers 🌹</b>\n\n`;
         _list.forEach((item: { address: string, amount: number }, idx: number) => {
-            leaderboardMsg += `<i>${idx + 1}</i>. <i>${item.address}</i>       <b>(${item.amount} $KOM)</b>\n`
+            leaderboardMsg += `<i>${idx + 1}</i>. <i>${item.address}</i>       <b>(${formatNumber(item.amount)} $KOM)</b>\n`
         });
         
         ctx.telegram.editMessageText(

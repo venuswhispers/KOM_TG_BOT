@@ -204,3 +204,30 @@ export const reduceAmount = (number: number | string | unknown | bigint, len = 4
         return value as string;
     }
 };
+/**
+ * reduce balance
+ * @if not number, return "0";
+ * @if > 10e+7 10M
+ * @if > 10e+4 10K
+ * @if 0.001234 0.0012
+ * @if 1.000000 1
+ *
+ * @param number 12.0000123451
+ * @returns string
+ *
+ */
+export const formatNumber = (number: number | string | unknown | bigint, len = 4) => {
+    if (Number(number) === 0 && isNaN(Number(number))) return 0;
+    let [num, _decimal] = String(number).split(".");
+    let _num = "";
+    let j = 1;
+    for (let i = num.length - 1; i >= 1; i--, j++) {
+      _num += num[i];
+      if (j % 3 === 0) _num += ",";
+    }
+    _num += num[0];
+    let str = _num.split("").reverse().reduce((acc: string, item: string) => acc += item, "");
+    if (_decimal) str += `.${_decimal.substring(0,2)}`;
+  
+    return str;
+  };

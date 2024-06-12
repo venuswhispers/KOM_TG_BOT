@@ -11,15 +11,15 @@ export const menu = async (ctx: any) => {
     }
 
     await ctx.reply("⏰ Loading your staking V1 details ...");
-    // if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-    //     return start(ctx, true);
-    // }
+    if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
+        return start(ctx, true);
+    }
 
-    // const _walletIndex = ctx.session.walletIndex ?? 0;
-    // const _wallet = ctx.session.wallet[_walletIndex];
+    const _walletIndex = ctx.session.walletIndex ?? 0;
+    const _wallet = ctx.session.wallet[_walletIndex];
 
-    // const address = _wallet.address;
-    const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
+    const address = _wallet.address;
+    // const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
 
     const _balance = await getStakingV1Details (137, address);
 
@@ -36,7 +36,7 @@ export const menu = async (ctx: any) => {
             reply_markup: {
                 // force_reply: true,
                 keyboard: [
-                    [{ text: '👈 BACK' }],
+                    [{ text: '👈 Back To Staking Menu' }],
                 ],
                 one_time_keyboard: true,
                 resize_keyboard: true,

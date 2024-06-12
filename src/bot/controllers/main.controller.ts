@@ -38,9 +38,11 @@ export const start = async (ctx: Context, noWallet: boolean = false) => {
     const createWalletButton = createCallBackBtn("Create New Wallet", "create_wallet");
     const importWalletButton = createCallBackBtn("Import Existing Wallet", "import_wallet");
     // Send message with the import wallet button
-    await ctx.replyWithAnimation(
+    await ctx.replyWithVideo(
         KOM_WELCOME_IMAGE,
         {
+            height: 720,
+            width: 1280,
             caption: message,
             parse_mode: "HTML",
             reply_markup: {
