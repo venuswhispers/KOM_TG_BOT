@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf';
 import { generateAccount, createCallBackBtn, createWallet } from "../../utils";
 import { decrypt } from '../../utils';
-import { menu, start } from '../../controllers/main.controller';
+import { menu, startNoWallet } from '../../controllers/main.controller';
 
 export const exportWalletScene = new Scenes.BaseScene<Context>("exportWalletScene");
 
@@ -21,14 +21,23 @@ exportWalletScene.enter(async (ctx: any) => {
   }
 
   const password: string = ctx.scene.state.password;
+
+  console.log({password})
   try {
     const _walletIndex = ctx.session.walletIndex ?? 0;
-    const key = decrypt(ctx.session.wallet[_walletIndex].privateKey, password);
+    const _wallet = ctx.session.wallet[_walletIndex];
+    const key = decrypt(_wallet.privateKey, password);
+
     if (!key) throw "no key";
 
     let count = 30;
+    const msg = 
+      `💦 Your wallet *<code>${_wallet.address}</code>* Private Key is: <code>${key}</code>\n\n` +
+      `<b>FOR SECURITY REASON, THIS MESSAGE WILL BE DELETED IN 30 SECONDS</b>\n\n` +
+      `<i>⚠  Warning : Never disclose this Private Key to anyone. Store it safely with a password manager and do not make a screenshot. To use this same wallet into a google chrome extension (like Rabby or Metamask), you can import the Private Key there. Anyone with this private key can steal any assets held in your account</i>`;
+
     const _msg = await ctx.reply(
-      `💦 Your wallet private key is\n<code>${key}</code> <i>(this message will be deleted in ${count --} seconds)</i> \n\n<b>⚠ Warning: Never disclose or store digitally this key. Anyone with your private keys can steal any assets held in your account.</b>`,
+      msg,
       {
         parse_mode: "HTML",
       }
@@ -36,9 +45,15 @@ exportWalletScene.enter(async (ctx: any) => {
     const intervalId: NodeJS.Timeout = setInterval (() => {
       try {
         if (count > 0) {
+        count --;
+        const msg = 
+          `💦 Your wallet *<code>${_wallet.address}</code>* Private Key is: <code>${key}</code>\n\n` +
+          `<b>FOR SECURITY REASON, THIS MESSAGE WILL BE DELETED IN ${count} SECONDS</b>\n\n` +
+          `<i>⚠  Warning : Never disclose this Private Key to anyone. Store it safely with a password manager and do not make a screenshot. To use this same wallet into a google chrome extension (like Rabby or Metamask), you can import the Private Key there. Anyone with this private key can steal any assets held in your account</i>`;
+
           ctx.telegram.editMessageText(
             ctx.chat.id, _msg.message_id, null, 
-            `💦 Your wallet private key is\n<code>${key}</code> <i>(this message will be deleted in ${count --} seconds)</i> \n\n<b>⚠ Warning: Never disclose or store digitally this key. Anyone with your private keys can steal any assets held in your account.</b>`,
+            msg,
             {
               parse_mode: "HTML",
             }
@@ -77,7 +92,7 @@ exportWalletScene.on('text', async (ctx: any) => {
     if (ctx.session.wallet) {
       await menu(ctx);
     } else {
-      await start(ctx);
+      await startNoWallet(ctx);
     }
     return;
   }

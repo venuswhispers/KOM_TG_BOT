@@ -3,7 +3,7 @@ import {
 } from "../../../utils";
 import { decrypt } from "../../../utils";
 import { stakeLP } from "../../../utils/staking";
-import { start } from "../../main.controller";
+import { startNoWallet } from "../../main.controller";
 import { menu } from "./main.controller";
 
 // when enter stakingV3Scene
@@ -16,7 +16,7 @@ export const enterScene = async (ctx: any) => {
 
     ctx.reply("⏰ Loading your staking LP details ...");
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        return start(ctx, true);
+        return startNoWallet(ctx);
     }
 
     const _walletIndex = ctx.session.walletIndex ?? 0;
@@ -118,7 +118,7 @@ export const textHandler = async (ctx: any) => {
 
         if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
             await ctx.scene.leave();
-            start (ctx, true);
+            startNoWallet (ctx);
             return;
         }
         const _walletIndex = ctx.session.walletIndex ?? 0;

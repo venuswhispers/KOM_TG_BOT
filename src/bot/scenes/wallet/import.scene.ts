@@ -1,11 +1,11 @@
 import { Scenes } from 'telegraf';
 import { generateAccount, createCallBackBtn } from "../../utils";
-import { menu, start } from '../../controllers/main.controller';
+import { menu, startNoWallet } from '../../controllers/main.controller';
 
 export const importWalletScene = new Scenes.BaseScene("importWalletScene");
 
 importWalletScene.enter((ctx) =>
-  ctx.reply("Please enter private key or 12-word mnemonic.", {
+  ctx.reply("Please enter your Private Key or 12-word Mnemonic Phase.", {
     reply_markup: {
       force_reply: true,
       input_field_placeholder: 'Enter password',
@@ -25,7 +25,7 @@ importWalletScene.on("text", async (ctx: any) => {
       if (ctx.session.wallet) {
           await menu (ctx);
       } else {
-          await start (ctx);
+          await startNoWallet (ctx);
       }
       return;
   }

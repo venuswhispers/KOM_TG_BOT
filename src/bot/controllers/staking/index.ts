@@ -3,7 +3,7 @@ import { chains } from "../../../constants/config";
 import { getNativeTokenPrice } from "../../utils";
 import { getTokenBalances } from "../../utils";
 import { CONTRACTS } from "../../../constants/config";
-import { start } from "../main.controller";
+import { startNoWallet } from "../main.controller";
 
 // show staking menus
 export const menu = async (ctx: any) => {
@@ -11,7 +11,7 @@ export const menu = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
     // const loading = await ctx.reply(`⏰ Loading token balances...`);
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        return start(ctx, true);
+        return startNoWallet(ctx);
     }
     // wallet
     const _walletIndex = ctx.session.walletIndex ?? 0;
@@ -47,7 +47,7 @@ export const menu = async (ctx: any) => {
     let msg =
         `💦 KomBot | <a href="https://staking.kommunitas.net/">Website</a> | <a href='https://youtu.be/CkdGN54ThQI?si=1RZ0T531IeMGfgaQ'>Tutorials</a> 💦\n\n` +
         `🏆 Stake <a href='${_chain.explorer}/address/${CONTRACTS[137].KOM.address}'>$KOM</a> to earn rewards and get guaranteed allocation for the Launchpad. If you encounter any difficulties, please visit this <a href='https://youtu.be/CkdGN54ThQI?si=1RZ0T531IeMGfgaQ'>YouTube tutorial</a> for step-by-step guidance.\n` +
-        (address ? `\n<code>${address}</code><i> (${_wallet.name})</i>` : '');
+        (address ? `\nYour wallet address :  <code>${address}</code><i> (${_wallet.name})</i>` : '');
     const _arbitrum = 
         `\n\n======== ARBITRUM ========` +
         `\n- Balance: <b>${reduceAmount(nativeBalance)}</b> <i>$ETH</i>   ($${reduceAmount(ethPrice * nativeBalance)})` +

@@ -1,5 +1,5 @@
 import { Telegraf, Scenes, session, Context } from 'telegraf';
-import { menu, start } from '../../controllers/main.controller';
+import { menu, startNoWallet } from '../../controllers/main.controller';
 // Create a new scene
 export const passwordScene = new Scenes.BaseScene<Context>('passwordScene');
 
@@ -31,7 +31,7 @@ passwordScene.on('text', async (ctx: any) => {
         if (ctx.session.wallet) {
             await menu(ctx);
         } else {
-            await start(ctx);
+            await startNoWallet(ctx);
         }
         return;
     }

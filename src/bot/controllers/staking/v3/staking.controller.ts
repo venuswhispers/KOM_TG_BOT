@@ -3,7 +3,7 @@ import {
 } from "../../../utils";
 import { decrypt } from "../../../utils";
 import { calculateReard, stakeKomV3 } from "../../../utils/staking";
-import { start } from "../../main.controller";
+import { startNoWallet } from "../../main.controller";
 import { menu } from "./main.controller";
 
 const PERIODS = [30, 60, 90, 180, 365, 730];
@@ -115,7 +115,7 @@ export const textHandler = async (ctx: any) => {
 
         if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
             await ctx.scene.leave();
-            start (ctx, true);
+            startNoWallet (ctx);
             return;
         }
         const _walletIndex = ctx.session.walletIndex ?? 0;

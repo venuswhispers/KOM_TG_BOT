@@ -6,7 +6,7 @@ import { CONTRACTS } from "../../../../constants/config";
 import { getStakingV3Details } from "../../../utils";
 import { decrypt } from "../../../utils";
 import { calculateReard, stakeKomV3, transferStakerShip, accpetStakership, changeCompoundType } from "../../../utils/staking";
-import { start } from "../../main.controller";
+import { startNoWallet } from "../../main.controller";
 import { menu } from "../v3/main.controller";
 
 const { ethers } = require('ethers');
@@ -28,7 +28,7 @@ export const enterScene = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
         await ctx.scene.leave();
-        return start (ctx, true);
+        return startNoWallet (ctx);
     }
 
     const _walletIndex = ctx.session.walletIndex ?? 0;
@@ -106,7 +106,7 @@ export const textHandler = async (ctx: any) => {
 
         if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
             await ctx.scene.leave();
-            start(ctx, true);
+            startNoWallet(ctx);
             return;
         }
         const _walletIndex = ctx.session.walletIndex ?? 0;

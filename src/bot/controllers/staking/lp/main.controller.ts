@@ -1,12 +1,12 @@
 import { STAKING_LP_BANNER_IMAGE } from "../../../../constants/pictures";
 import { getLPBalance, getLPStakingDetails } from "../../../utils";
-import { start } from "../../main.controller";
+import { startNoWallet } from "../../main.controller";
 
 // show staking LP menus
 export const menu = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        return start(ctx, true);
+        return startNoWallet(ctx);
     }
 
     const _walletIndex = ctx.session.walletIndex ?? 0;
@@ -43,9 +43,10 @@ export const menu = async (ctx: any) => {
             reply_markup: {
                 keyboard: [
                     [ { text: 'Refresh 💫' } ], 
-                    [ { text: 'Stake 🎨' } ], 
-                    [ { text: chainId === 137 ? 'Switch to Arbitrum 💦' : 'Switch to Polygon 💦' } ],
-                    [ { text: '👈 Back To Staking Menu' } ]
+                    chainId !== 137 ?
+                    [ { text: 'Stake 🎨' }, { text: 'Switch to Polygon 💦' } ]: 
+                    [ { text: 'Stake 🎨' } ],
+                    [ { text: '👈 Back To Staking Menu' } ],
                 ],
                 resize_keyboard: true,
             },

@@ -1,6 +1,6 @@
 import { Scenes, Context } from 'telegraf';
 import { createCallBackBtn, createWallet } from "../../utils";
-import { start } from '../../controllers/main.controller';
+import { startNoWallet } from '../../controllers/main.controller';
 export const deleteWalletScene = new Scenes.BaseScene<Context>("deleteWalletScene");
 import { menu } from '../../controllers/main.controller';
 import { deleteWallet, showWallets } from '../../controllers/wallet/wallet.controller';
@@ -8,7 +8,7 @@ import { deleteWallet, showWallets } from '../../controllers/wallet/wallet.contr
 deleteWalletScene.enter(async (ctx: any) => {
     const { index } = ctx.scene.state;
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet) || ctx.session.wallet.length === 0) {
-        return start(ctx, true);
+        return startNoWallet(ctx);
     } else if (ctx.session.wallet.length < index) {
         return ctx.reply("⚠ No wallet for selected index");
     }

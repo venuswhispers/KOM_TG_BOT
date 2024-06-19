@@ -1,23 +1,22 @@
 import { STAKING_LP_BANNER_IMAGE, STAKING_V1_BANNER_IMAGE } from "../../../../constants/pictures";
 import { getLPBalance, getLPStakingDetails, getStakingV1Details } from "../../../utils";
-import { start } from "../../main.controller";
+import { startNoWallet } from "../../main.controller";
 
 // show staking LP menus
 export const menu = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
+    await ctx.reply("⏰ Loading your staking V1 details ...");
     if (chainId !== 137) {
         await ctx.scene.leave ();
         return ctx.reply(`⚠ Please Switch To POLYGON Network`);
     }
 
-    await ctx.reply("⏰ Loading your staking V1 details ...");
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        return start(ctx, true);
+        return startNoWallet(ctx);
     }
 
     const _walletIndex = ctx.session.walletIndex ?? 0;
     const _wallet = ctx.session.wallet[_walletIndex];
-
     const address = _wallet.address;
     // const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
 
@@ -36,6 +35,8 @@ export const menu = async (ctx: any) => {
             reply_markup: {
                 // force_reply: true,
                 keyboard: [
+                    Number(_balance) > 0 ?
+                    [{ text: 'Claim 👏' }] : [],
                     [{ text: '👈 Back To Staking Menu' }],
                 ],
                 one_time_keyboard: true,

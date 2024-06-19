@@ -2,7 +2,7 @@ import { getStakingV3Detail } from "../../../utils";
 import { decrypt } from "../../../utils";
 import { unstakeKomV3 } from "../../../utils/staking";
 import { menu } from "./main.controller";
-import { start } from "../../main.controller";
+import { startNoWallet } from "../../main.controller";
 
 //switch chain
 export const switchChain = async (ctx: any) => {
@@ -20,7 +20,7 @@ export const enterScene = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
         await ctx.scene.leave();
-        return start (ctx, true);
+        return startNoWallet (ctx);
     }
 
     const _walletIndex = ctx.session.walletIndex ?? 0;
@@ -116,7 +116,7 @@ export const textHandler = async (ctx: any) => {
         
         if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
             await ctx.scene.leave();
-            start(ctx, true);
+            startNoWallet(ctx);
             return;
         }
         const _walletIndex = ctx.session.walletIndex ?? 0;

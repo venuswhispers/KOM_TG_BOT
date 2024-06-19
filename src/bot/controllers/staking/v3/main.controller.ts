@@ -10,7 +10,7 @@ import { getNativeTokenPrice } from "../../../utils";
 import { getTokenBalances } from "../../../utils";
 import { CONTRACTS } from "../../../../constants/config";
 import { getStakingV3Details } from "../../../utils";
-import { start } from "../../main.controller";
+import { startNoWallet } from "../../main.controller";
 import { STAKEV3_PAST_DETAIL_ITEM } from "../../../../types";
 import { getStatistics, getChartData, getLeaderBoard } from "../../../utils";
 import { CHART_DATA_ITEM } from "../../../../types";
@@ -25,7 +25,7 @@ const modes: Record<string, number> = { 'No Compound': 0, 'Compound My Staked $K
 export const menu = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        return start(ctx, true);
+        return startNoWallet(ctx);
     }
 
     const _walletIndex = ctx.session.walletIndex ?? 0;
@@ -73,7 +73,7 @@ export const menu = async (ctx: any) => {
     let msg =
         `💦 KomBot | <a href="https://staking.kommunitas.net/"><u>Website</u></a> | <a href='https://youtu.be/CkdGN54ThQI?si=1RZ0T531IeMGfgaQ'><u>Tutorials</u></a> 💦\n\n` +
         `🏆 Stake <a href='${_chain.explorer}/address/${CONTRACTS[chainId].KOM.address}'>$KOM</a> to earn rewards and get guaranteed allocation for the Launchpad. If you encounter any difficulties, please visit this <a href='https://youtu.be/CkdGN54ThQI?si=1RZ0T531IeMGfgaQ'>YouTube tutorial</a> for step-by-step guidance.\n` +
-        (address ? `\n<code>${address}</code><i> (Tap to copy)</i>` : '');
+        (address ? `\nYour wallet address is: <code>${address}</code><i> (Tap to copy)</i>` : '');
     const _arbitrum = 
         `\n\n======== ARBITRUM ========\n` +
         `- Balance: <b>${reduceAmount(nativeBalance)}</b> <i>$ETH</i>   ($${reduceAmount(nativeTokenPrice * Number(nativeBalance))})` +
@@ -107,6 +107,7 @@ export const menu = async (ctx: any) => {
             parse_mode: "HTML",
             reply_markup: {
                 keyboard: [
+                    chainId === 137 ?
                     originStakership_Pol === zeroAddress ?
                     [
                         { text: 'Stake ⏱' }, 
@@ -116,7 +117,8 @@ export const menu = async (ctx: any) => {
                         { text: 'Stake ⏱' }, 
                         { text: 'Transfer Stakership 🚀' },
                         { text: `Accept Stakership from "${originStakership_Pol.substring(0, 10)}..."` }
-                    ],
+                    ] :
+                    [ { text: 'Stake ⏱' } ],
                     [
                         { text: 'My Ongoing Staking Details 🏅' }, 
                         { text: 'My Past Staking Details 🥇' }
@@ -144,7 +146,7 @@ export const menu = async (ctx: any) => {
 export const stakingV3_ongoing_staking_details = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        return start(ctx, true);
+        return startNoWallet(ctx);
     }
     const _walletIndex = ctx.session.walletIndex ?? 0;
     const _wallet = ctx.session.wallet[_walletIndex];
@@ -216,7 +218,7 @@ export const stakingV3_ongoing_staking_details = async (ctx: any) => {
 export const staingV3_past_staking_details = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        return start(ctx, true);
+        return startNoWallet(ctx);
     }
     const _walletIndex = ctx.session.walletIndex ?? 0;
     const _wallet = ctx.session.wallet[_walletIndex];

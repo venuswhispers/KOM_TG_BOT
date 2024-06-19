@@ -3,6 +3,8 @@ import axios from 'axios';
 import { chains } from '../../constants/config';
 import QuickChart from 'quickchart-js';
 import { CHART_DATA_ITEM } from "../../types";
+const { createCanvas, loadImage } = require('canvas');
+import fs from 'fs';
 
 export const encrypt = (text: string, key?: string) => {
     return crypto.AES.encrypt(text, key ? key : process.env.BOT_TOKEN).toString();
@@ -142,7 +144,7 @@ export const getChartURL = async (data: CHART_DATA_ITEM[]) => {
  */
 export const getPastStakingDetails = async (chainId: number, address: string) => {
     try {
-        const { status, result } = await komAPI (`https://api.kommunitas.net/v1/staking/past/?chainId=${chainId}&address=${address}`);
+        const { status, result } = await komAPI(`https://api.kommunitas.net/v1/staking/past/?chainId=${chainId}&address=${address}`);
         if (status === 'success') {
             return result;
         } else {
@@ -151,7 +153,7 @@ export const getPastStakingDetails = async (chainId: number, address: string) =>
     } catch (err) {
         return []
     }
-    
+
 }
 
 /**
@@ -222,12 +224,39 @@ export const formatNumber = (number: number | string | unknown | bigint, len = 4
     let _num = "";
     let j = 1;
     for (let i = num.length - 1; i >= 1; i--, j++) {
-      _num += num[i];
-      if (j % 3 === 0) _num += ",";
+        _num += num[i];
+        if (j % 3 === 0) _num += ",";
     }
     _num += num[0];
     let str = _num.split("").reverse().reduce((acc: string, item: string) => acc += item, "");
-    if (_decimal) str += `.${_decimal.substring(0,2)}`;
-  
+    if (_decimal) str += `.${_decimal.substring(0, 2)}`;
+
     return str;
-  };
+};
+
+export const drawImage = async () => {
+    const mainImageUrl = 'https:\/\/kommunitas.net\/assets\/launchpads\/iko-72e1fecd5cf433598783d4f54de03d88702edd4fd6b815f5692c2f37029670a1.png';
+    const logoImageUrl = 'https:\/\/kommunitas.net\/assets\/launchpads\/iko-4814b15250656e8a3a17d75e81a9f99c3aeae52962c75026995899b9bcd64da6.png';
+
+    const canvas = createCanvas(800, 600); // Set canvas dimensions as needed
+    const ctx = canvas.getContext('2d');
+
+    // Load the main image
+    loadImage(mainImageUrl).then((mainImage: any) => {
+        // Draw the main image on the canvas
+        ctx.drawImage(mainImage, 0, 0, canvas.width, canvas.height);
+
+        // Load the logo image
+        loadImage(logoImageUrl).then((logoImage: any) => {
+            // Draw the logo image in the top-left corner
+            ctx.drawImage(logoImage, 10, 10, 100, 100); // Adjust position and size as needed
+
+            // Convert the canvas to a buffer
+            const buffer = canvas.toBuffer('image/png');
+
+            // Save the image buffer to a file or send it to the frontend
+            // For example, save to a file
+            fs.writeFileSync('resultImage.png', buffer);
+        });
+    });
+}

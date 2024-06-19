@@ -1,4 +1,4 @@
-export const KOM_TOKEN_IMAGE = 'https://ipfs.io/ipfs/QmWiojTGX1Dm6K7vdj8Cm5qFuHTMWhBUDe4eFqWgNC2Xai';
+export const  KOM_TOKEN_IMAGE= 'https://ipfs.io/ipfs/QmWCowZ7ZjBpXE8C1dnUYhak6ewhcpxMucMsG3MKMf9ZGS';
 export const KOM_WELCOME_IMAGE = 'https://ipfs.io/ipfs/QmYDLxg239npGJesRJzP6fqcokSyPJkorCaEm748HDKLTf';
 // export const KOM_WELCOME_IMAGE = 'https://ipfs.io/ipfs/QmYDLxg239npGJesRJzP6fqcokSyPJkorCaEm748HDKLTf';
 export const STAKING_LP_BANNER_IMAGE = 'https://ipfs.io/ipfs/QmevNxmzrTLNnX5H9mQzpTn14etKr197rvsJS5WaN4ojg4';
@@ -11,3 +11,4 @@ export const COMPOUND_MODE_CHANGED_IMAGED = 'https://ipfs.io/ipfs/QmWiojTGX1Dm6K
 export const STAKING_V3_SUCCESS_IMAGE = 'https://ipfs.io/ipfs/QmNZyvWByRbKPKLWauEZdqD8L6pFomB3C7BeiBgrE7u5JW'; // done
 export const STAKING_LP_SUCCESS_IMAGE = 'https://ipfs.io/ipfs/QmNZyvWByRbKPKLWauEZdqD8L6pFomB3C7BeiBgrE7u5JW'; // done
 export const UNSTAKING_V3_SUCCESS_IMAGE = 'https://ipfs.io/ipfs/QmbD9fRUb7oULqBKwz3yKHkyRD3G8ZCiaDtVZ8b71XXFh8'; //done
+export const LAUNCHPAD_MAIN_LOGO = 'https://launchpad.kommunitas.net/static/media/priority-vs-secure-vs-exclusive-banner.7902d57f75c225bbedfb.webp';

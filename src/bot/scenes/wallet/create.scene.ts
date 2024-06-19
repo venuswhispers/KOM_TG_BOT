@@ -6,11 +6,19 @@ import { menu } from '../../controllers/main.controller';
 
 createWalletScene.enter(async (ctx: any) => {
     const { name, password } = ctx.scene.state;
+    console.log({ password })
     const wallet = createWallet(name, password);
     // Create a button for export private key
     const exportPrivatekeyButton = createCallBackBtn("Export Private Key", "export_wallet");
     // Send message with the import wallet button
-    ctx.reply(`🎉   Your wallet has been successfully created.\n\n- Account Name: <code>${name}</code>\n- Address: <code>${wallet.address}</code>.`,
+    const msg =     
+        `🎉  Congrats! Your wallet has been successfully created.\n\n` +
+        `- Account Name: <code><b>${name}</b></code>\n` + 
+        `- Address: <code>${wallet.address}</code>\n\n` + 
+        `<i>Please back up the private key of your new wallet by clicking on the button below.</i>`;
+
+    ctx.reply(
+        msg,
         {
             parse_mode: "HTML",
             reply_markup: {

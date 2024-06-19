@@ -1,14 +1,17 @@
 import { chains } from "../../constants/config";
 import { CONTRACTS } from "../../constants/config";
-import { 
-    COMPOUND_MODE_CHANGED_IMAGED, 
-    STAKERSHIP_RECEIVED_IMAGE, 
-    STAKERSHIP_TRANSFERRED_IMAGE, 
-    STAKING_LP_SUCCESS_IMAGE, 
-    STAKING_V3_SUCCESS_IMAGE, 
-    UNSTAKING_V3_SUCCESS_IMAGE 
+import {
+    COMPOUND_MODE_CHANGED_IMAGED,
+    KOM_TOKEN_IMAGE,
+    STAKERSHIP_RECEIVED_IMAGE,
+    STAKERSHIP_TRANSFERRED_IMAGE,
+    STAKING_LP_SUCCESS_IMAGE,
+    STAKING_V3_SUCCESS_IMAGE,
+    UNSTAKING_V3_SUCCESS_IMAGE
 } from "../../constants/pictures";
 import { menu as menuStakingV3, stakingV3_ongoing_staking_details } from "../controllers/staking/v3/main.controller";
+import { menu as menuStakingV1 } from "../controllers/staking/v1/main.controller";
+import { menu as menuStakingV2 } from "../controllers/staking/v2/main.controller";
 import { menu as menuStakingLP } from "../controllers/staking/lp/main.controller";
 const { ethers } = require('ethers');
 
@@ -30,7 +33,7 @@ export const stakeKomV3 = async (ctx: any, address: string, privateKey: string, 
         stakingAmount,
         privateKey
     });
-    
+
     const loading = await ctx.reply(`⏰  Loading StakingV3 Contract ...`);
     try {
         const chainId = ctx.session.chainId ?? 137;
@@ -38,7 +41,7 @@ export const stakeKomV3 = async (ctx: any, address: string, privateKey: string, 
         const { address: STAKING_CONTRACT_ADDRESS, abi: STAKING_ABI } = CONTRACTS[chainId].STAKING_V3;
         const { address: KOM_CONTRACT_ADDRESS, abi: KOM_ABI } = CONTRACTS[chainId].KOM;
         //staking params
-        
+
         // web3 provider
         const provider = new ethers.providers.JsonRpcProvider(_chain.rpc);
         // signer
@@ -52,8 +55,8 @@ export const stakeKomV3 = async (ctx: any, address: string, privateKey: string, 
 
         const balance = Number(ethers.utils.formatUnits(_balance, 8));
         const allowance = Number(ethers.utils.formatUnits(_allowance, 8));
-        
-        console.log({allowance, stakingAmount, balance})
+
+        console.log({ allowance, stakingAmount, balance })
 
         if (balance < stakingAmount) {
             ctx.reply(
@@ -66,7 +69,7 @@ export const stakeKomV3 = async (ctx: any, address: string, privateKey: string, 
         }
 
         const settings = chainId === 137 ? { gasLimit: 3000000, gasPrice: 8e10 } : {};
-        
+
         if (allowance < stakingAmount) {
             const _txApprove = await _contractKOM.approve(STAKING_CONTRACT_ADDRESS, stakingAmount * 1e8, settings);
             await _txApprove.wait();
@@ -89,7 +92,7 @@ export const stakeKomV3 = async (ctx: any, address: string, privateKey: string, 
                 }
             }
         );
-        menuStakingV3 (ctx);
+        menuStakingV3(ctx);
     } catch (err) {
         let msg = "An unexpected error occurred while running tx";
         if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
@@ -115,14 +118,14 @@ export const stakeKomV3 = async (ctx: any, address: string, privateKey: string, 
  * @returns 
  */
 export const stakeLP = async (ctx: any, address: string, privateKey: string, stakingAmount: number) => {
-    
+
     await ctx.reply(`⏰  Loading StakingLP Contract ...`);
     try {
         const chainId = 137;
         const _chain = chains[chainId];
         const { address: STAKING_CONTRACT_ADDRESS, abi: STAKING_ABI } = CONTRACTS[chainId].STAKING_LP;
         const { address: LP_CONTRACT_ADDRESS, abi: LP_ABI } = CONTRACTS[chainId].LP;
-        
+
         // web3 provider
         const provider = new ethers.providers.JsonRpcProvider(_chain.rpc);
         // signer
@@ -136,8 +139,8 @@ export const stakeLP = async (ctx: any, address: string, privateKey: string, sta
 
         const balance = Number(ethers.utils.formatUnits(_balance, 18));
         const allowance = Number(ethers.utils.formatUnits(_allowance, 18));
-        
-        console.log({allowance, stakingAmount, balance})
+
+        console.log({ allowance, stakingAmount, balance })
 
         if (balance < stakingAmount) {
             ctx.reply(
@@ -157,7 +160,7 @@ export const stakeLP = async (ctx: any, address: string, privateKey: string, sta
             console.log({ hash: _txApprove.hash });
         }
         // staking...
-        
+
         ctx.reply('⏰  Sending Staking Transaction...');
         const _contractStaking = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer);
         const _txStaking = await _contractStaking.stake(_amount, settings);
@@ -173,7 +176,7 @@ export const stakeLP = async (ctx: any, address: string, privateKey: string, sta
                 }
             }
         );
-        menuStakingLP (ctx);
+        menuStakingLP(ctx);
     } catch (err) {
         let msg = "An unexpected error occurred while running tx";
         if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
@@ -203,20 +206,20 @@ export const changeCompoundType = async (ctx: any, address: string, privateKey: 
         index,
         newCompoundType
     });
-    
+
     const loading = await ctx.reply(`⏰  Loading StakingV3 Contract ...`);
     try {
         const chainId = ctx.session.chainId ?? 137;
         const _chain = chains[chainId];
         const { address: STAKING_CONTRACT_ADDRESS, abi: STAKING_ABI } = CONTRACTS[chainId].STAKING_V3;
         //staking params
-        
+
         // web3 provider
         const provider = new ethers.providers.JsonRpcProvider(_chain.rpc);
         // signer
         const signer = new ethers.Wallet(privateKey, provider);
         const settings = chainId === 137 ? { gasLimit: 3000000, gasPrice: 8e10 } : {};
-        
+
         // staking...
         ctx.telegram.editMessageText(ctx.chat.id, loading.message_id, null, '⏰  Sending changeCompoundMode Transaction...');
         const _contractStaking = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer);
@@ -237,7 +240,7 @@ export const changeCompoundType = async (ctx: any, address: string, privateKey: 
                 }
             }
         );
-        stakingV3_ongoing_staking_details (ctx);
+        stakingV3_ongoing_staking_details(ctx);
     } catch (err) {
         let msg = "An unexpected error occurred while running tx";
         if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
@@ -271,7 +274,7 @@ export const transferStakerShip = async (ctx: any, privateKey: string, transferS
         const signer = new ethers.Wallet(privateKey, provider);
 
         const settings = chainId === 137 ? { gasLimit: 3000000, gasPrice: 8e10 } : {};
-        
+
         // staking...
         ctx.telegram.editMessageText(ctx.chat.id, loading.message_id, null, '⏰  Sending TransferStakership Transaction...');
         const _contractStaking = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer);
@@ -289,7 +292,7 @@ export const transferStakerShip = async (ctx: any, privateKey: string, transferS
                 }
             }
         );
-        menuStakingV3 (ctx);
+        menuStakingV3(ctx);
     } catch (err) {
         let msg = "An unexpected error occurred while running tx";
         if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
@@ -321,7 +324,7 @@ export const accpetStakership = async (ctx: any, privateKey: string, originStake
         const signer = new ethers.Wallet(privateKey, provider);
 
         const settings = chainId === 137 ? { gasLimit: 3000000, gasPrice: 8e10 } : {};
-        
+
         // staking...
         ctx.telegram.editMessageText(ctx.chat.id, loading.message_id, null, '⏰  Sending AcceptStakership Transaction...');
         const _contractStaking = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer);
@@ -339,7 +342,7 @@ export const accpetStakership = async (ctx: any, privateKey: string, originStake
                 }
             }
         );
-        menuStakingV3 (ctx);
+        menuStakingV3(ctx);
     } catch (err) {
         let msg = "An unexpected error occurred while running tx";
         if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
@@ -369,20 +372,20 @@ export const unstakeKomV3 = async (ctx: any, address: string, privateKey: string
         withdrawAmount,
         index
     });
-    
+
     const loading = await ctx.reply(`⏰  Loading StakingV3 Contract ...`);
-    
+
     try {
         const chainId = ctx.session.chainId ?? 137;
         const _chain = chains[chainId];
         const { address: STAKING_CONTRACT_ADDRESS, abi: STAKING_ABI } = CONTRACTS[chainId].STAKING_V3;
-        
+
         // web3 provider
         const provider = new ethers.providers.JsonRpcProvider(_chain.rpc);
         // signer
         const signer = new ethers.Wallet(privateKey, provider);
         const settings = chainId === 137 ? { gasLimit: 6000000, gasPrice: 8e10 } : {};
-        
+
         // unstaking...
         ctx.telegram.editMessageText(ctx.chat.id, loading.message_id, null, '⏰  Sending unstake Transaction...');
         const _contractStaking = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer);
@@ -401,7 +404,7 @@ export const unstakeKomV3 = async (ctx: any, address: string, privateKey: string
                 }
             }
         );
-        menuStakingV3 (ctx);
+        menuStakingV3(ctx);
     } catch (err) {
         let msg = "An unexpected error occurred while running tx";
         if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
@@ -416,7 +419,109 @@ export const unstakeKomV3 = async (ctx: any, address: string, privateKey: string
         ctx.telegram.editMessageText(ctx.chat.id, loading.message_id, null, `⚠ ${msg}`);
     }
 }
+/**
+ * claim tokens from v1 pool
+ * @param ctx 
+ * @param privateKey 
+ */
+export const claimKomV1 = async (ctx: any, privateKey: string) => {
 
+    const loading = await ctx.reply(`⏰  Loading StakingV1 Contract ...`);
+    try {
+        const chainId = 137;
+        const _chain = chains[chainId];
+        const { address: STAKING_CONTRACT_ADDRESS, abi: STAKING_ABI } = CONTRACTS[chainId].STAKING_V1;
+
+        // web3 provider
+        const provider = new ethers.providers.JsonRpcProvider(_chain.rpc);
+        // signer
+        const signer = new ethers.Wallet(privateKey, provider);
+        const settings = chainId === 137 ? { gasLimit: 3000000, gasPrice: 8e10 } : {};
+        // unstaking...
+        ctx.telegram.editMessageText(ctx.chat.id, loading.message_id, null, '⏰  Sending v1 unstake Transaction...');
+        const _contractStaking = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer);
+
+        const _txUnStaking = await _contractStaking.unlock(settings);
+        await _txUnStaking.wait();
+        console.log("unstaked...");
+        await ctx.deleteMessage(loading.message_id).catch((err: any) => { });
+
+        ctx.replyWithVideo(
+            KOM_TOKEN_IMAGE,
+            {
+                caption: `🌹 Successfully unstaked your $KOM tokens\n\n<a href='${_chain.explorer}tx/${_txUnStaking.hash}'>👁‍🗨 Click to view transaction</a>`,
+                parse_mode: "HTML",
+                link_preview_options: {
+                    is_disabled: true
+                }
+            }
+        );
+        menuStakingV2(ctx);
+    } catch (err) {
+        let msg = "An unexpected error occurred while running tx";
+        if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
+            msg = "Insufficient funds for intrinsic transaction cost";
+        } else if (String(err).includes("cannot estimate gas")) {
+            msg = "Cannot estimate gas";
+        } else if (String(err).includes("intrinsic gas too low")) {
+            msg = "Intrinsic gas too low";
+        } else {
+            console.log(err);
+        }
+        ctx.telegram.editMessageText(ctx.chat.id, loading.message_id, null, `⚠ ${msg}`);
+    }
+}
+/**
+ * claim tokens from v1 pool
+ * @param ctx 
+ * @param privateKey 
+ */
+export const claimKomV2 = async (ctx: any, privateKey: string) => {
+
+    const loading = await ctx.reply(`⏰  Loading StakingV2 Contract ...`);
+    try {
+        const chainId = 137;
+        const _chain = chains[chainId];
+        const { address: STAKING_CONTRACT_ADDRESS, abi: STAKING_ABI } = CONTRACTS[chainId].STAKING_V2;
+
+        // web3 provider
+        const provider = new ethers.providers.JsonRpcProvider(_chain.rpc);
+        // signer
+        const signer = new ethers.Wallet(privateKey, provider);
+        const settings = chainId === 137 ? { gasLimit: 3000000, gasPrice: 8e10 } : {};
+        // unstaking...
+        ctx.telegram.editMessageText(ctx.chat.id, loading.message_id, null, '⏰  Sending v2 unstake Transaction...');
+        const _contractStaking = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer);
+
+        const _txUnStaking = await _contractStaking.unlock(0, settings);
+        await _txUnStaking.wait();
+        await ctx.deleteMessage(loading.message_id).catch((err: any) => { });
+
+        ctx.replyWithVideo(
+            KOM_TOKEN_IMAGE,
+            {
+                caption: `🌹 Successfully unstaked your $KOM tokens\n\n<a href='${_chain.explorer}tx/${_txUnStaking.hash}'>👁‍🗨 Click to view transaction</a>`,
+                parse_mode: "HTML",
+                link_preview_options: {
+                    is_disabled: true
+                }
+            }
+        );
+        menuStakingV2(ctx);
+    } catch (err) {
+        let msg = "An unexpected error occurred while running tx";
+        if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
+            msg = "Insufficient funds for intrinsic transaction cost";
+        } else if (String(err).includes("cannot estimate gas")) {
+            msg = "Cannot estimate gas";
+        } else if (String(err).includes("intrinsic gas too low")) {
+            msg = "Intrinsic gas too low";
+        } else {
+            console.log(err);
+        }
+        ctx.telegram.editMessageText(ctx.chat.id, loading.message_id, null, `⚠ ${msg}`);
+    }
+}
 /**
  * 
  * @param stakingAmount 

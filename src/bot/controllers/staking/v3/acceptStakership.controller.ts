@@ -1,7 +1,7 @@
 import { createCallBackBtn, getStakershipDetails } from "../../../utils";
 import { decrypt } from "../../../utils";
 import { accpetStakership } from "../../../utils/staking";
-import { start } from "../../main.controller";
+import { startNoWallet } from "../../main.controller";
 import { menu } from "..";
 
 // when enter stakingV3Scene
@@ -34,7 +34,7 @@ export const textHandler = async (ctx: any) => {
     
     if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
         await ctx.scene.leave();
-        start(ctx, true);
+        startNoWallet(ctx);
         return;
     }
     const _walletIndex = ctx.session.walletIndex ?? 0;

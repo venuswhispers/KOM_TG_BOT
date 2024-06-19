@@ -1,5 +1,5 @@
 import { Telegraf, Scenes, session, Context } from 'telegraf';
-import { menu, start } from '../../controllers/main.controller';
+import { menu, startNoWallet } from '../../controllers/main.controller';
 // Create a new scene
 export const walletScene = new Scenes.BaseScene<Context>('walletScene');
 
@@ -7,8 +7,10 @@ export const walletScene = new Scenes.BaseScene<Context>('walletScene');
 
 // Handle the password prompt
 walletScene.enter((ctx: any) => {
+    const { next } = ctx.scene.state;
+
     ctx.reply(
-        '💬 Please Enter Account Name.',
+        `💬 You want to ${ next === 'createWalletScene' ? 'create a new wallet' : 'import an existing wallet' }, Please provide an Account Name for this wallet`,
         {
             reply_markup: {
                 force_reply: true,
@@ -31,7 +33,7 @@ walletScene.on('text', async (ctx: any) => {
         if (ctx.session.wallet) {
             await menu(ctx);
         } else {
-            await start(ctx);
+            await startNoWallet(ctx);
         }
         return;
     }
@@ -43,7 +45,7 @@ walletScene.on('text', async (ctx: any) => {
         } else {
             ctx.scene.state.name = ctx.message.text;
             ctx.reply(
-                `💬 Your Account Name is <b><i>${ctx.scene.state.name}</i></b>\n\nPlease enter your password. <i>(You will need to use this password for any transactions)</i>`,
+                `💬 Your Account Name is <b><i>${ctx.scene.state.name}</i></b>\n\nPlease enter your password. <i>(You will need to use this password for any transactions)</i>\n\n<i>password should be no longer than 12 characters</i>`,
                 {
                     parse_mode: "HTML",
                     reply_markup: {
@@ -61,6 +63,39 @@ walletScene.on('text', async (ctx: any) => {
     } else {
         const password: string = ctx.message.text;
         const next: string = ctx.scene.state.next;
+
+        if (password.length < 6) {
+            return ctx.reply(
+                '⚠ Password should be longer than 6 characters, Please try again',
+                {
+                    reply_markup: {
+                        force_reply: true,
+                        input_field_placeholder: 'Enter password',
+                        keyboard: [
+                            [{ text: '👈 BACK' }],
+                        ],
+                        one_time_keyboard: true,
+                        resize_keyboard: true,
+                    }
+                }
+            );
+        } else if (password.length > 12) {
+            return ctx.reply(
+                `⚠ Password shouldn't be longer than 12 characters, Please try again`,
+                {
+                    reply_markup: {
+                        force_reply: true,
+                        input_field_placeholder: 'Enter password',
+                        keyboard: [
+                            [{ text: '👈 BACK' }],
+                        ],
+                        one_time_keyboard: true,
+                        resize_keyboard: true,
+                    }
+                }
+            );
+        }
+        
         // delete password
         await ctx.deleteMessage(ctx.message.message_id).catch((err: any) => { });
         // await ctx.reply(`🏆 You will need to use this password for any transactions.`)

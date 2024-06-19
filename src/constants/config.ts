@@ -2,10 +2,10 @@ import { CHAIN, CONTRACT } from "../types";
 import KOM_ABI from './abis/KOM.json';
 import KOMV_ABI from './abis/KOMV.json';
 import LP_ABI from './abis/LP.json';
-import STAKING_V1_ABI from './abis/STAKING_V1.json';
-import STAKING_V2_ABI from './abis/STAKING_V2.json';
-import STAKING_V3_ABI from './abis/STAKING_V3.json';
-import STAKING_LP_ABI from './abis/STAKING_LP.json';
+import STAKING_V1_ABI from './abis/staking/STAKING_V1.json';
+import STAKING_V2_ABI from './abis/staking/STAKING_V2.json';
+import STAKING_V3_ABI from './abis/staking/STAKING_V3.json';
+import STAKING_LP_ABI from './abis/staking/STAKING_LP.json';
 
 export const chains: Record<number, CHAIN> = {
     137: {
