@@ -24,14 +24,10 @@ const modes: Record<string, number> = { 'No Compound': 0, 'Compound My Staked $K
 // show staking menus
 export const menu = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
-    if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
+    if (!ctx.session.account) {
         return startNoWallet(ctx);
     }
-
-    const _walletIndex = ctx.session.walletIndex ?? 0;
-    const _wallet = ctx.session.wallet[_walletIndex];
-
-    const address = _wallet.address;
+    const address = ctx.session.address;
     // const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
 
     const _chain = chains[chainId];

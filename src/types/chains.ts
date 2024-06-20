@@ -6,6 +6,11 @@ export type CHAIN = {
     explorer: string
 }
 
+export type ACCOUNT = {
+    address: string,
+    name: string
+}
+
 export type CONTRACT = {
     KOM: {
         address: string,

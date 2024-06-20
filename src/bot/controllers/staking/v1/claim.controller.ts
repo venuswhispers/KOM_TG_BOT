@@ -12,15 +12,12 @@ export const enterScene = async (ctx: any) => {
     }
 
     await ctx.reply("⏰ Loading your stakingV1 details ...");
-    // if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-    //     return startNoWallet(ctx);
-    // }
-
-    // const _walletIndex = ctx.session.walletIndex ?? 0;
-    // const _wallet = ctx.session.wallet[_walletIndex];
-
-    // const address = _wallet.address;
-    const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
+    
+    if (!ctx.session.account) {
+        return startNoWallet(ctx);
+    }
+    const address = ctx.session.address;
+    // const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
 
     const msg = 
         `<b>💎 Your Staked $KOM tokens:</b>  <b>${ 0.0 }</b> <i><a href='https://polygonscan.com/address/0xC004e2318722EA2b15499D6375905d75Ee5390B8'>$KOM</a></i>\n\n` +

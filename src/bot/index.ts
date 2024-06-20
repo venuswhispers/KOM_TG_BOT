@@ -46,6 +46,7 @@ export default () => {
   const commands = [
     { command: '/start', description: 'Start a dialogue with the bot' },
     { command: '/menu', description: 'Show Main Menu' },
+    { command: '/menu_staking', description: 'Show Menu for Stakings' },
     { command: '/menu_staking_v1', description: 'Show Menu for Staking V1' },
     { command: '/menu_staking_v2', description: 'Show Menu for Staking V2' },
     { command: '/menu_staking_v3', description: 'Show Menu for Staking V3' },

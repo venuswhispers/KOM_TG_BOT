@@ -6,7 +6,7 @@ import { CONTRACTS } from "../../../constants/config";
 import { startNoWallet } from "../main.controller";
 import { LAUNCHPAD_MAIN_LOGO } from "../../../constants/pictures";
 import { getProjects } from "../../utils/launchpad";
-import { IProject } from "../../../types";
+import { IProject } from "@/types";
 
 
 // show staking menus

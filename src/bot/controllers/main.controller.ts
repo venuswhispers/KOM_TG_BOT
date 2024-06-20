@@ -58,8 +58,6 @@ import { pay } from "telegraf/typings/button";
 export const startNoWallet = async (ctx: Context) => {
     const msg = `⚠ You have no wallet!\n\nDo you have an existing wallet or create new one?`;
     // Create a buttons for creating and exporting wallets
-    const createWalletButton = createCallBackBtn("Create New Wallet", "create_wallet");
-    const importWalletButton = createCallBackBtn("Import Existing Wallet", "import_wallet");
     // Send message with the import wallet button
     await ctx.replyWithVideo(
         KOM_WELCOME_IMAGE,
@@ -67,11 +65,11 @@ export const startNoWallet = async (ctx: Context) => {
             caption: msg,
             parse_mode: "HTML",
             reply_markup: {
-                inline_keyboard: [[
-                    { text: 'Create New Wallet', 'web_app': { url: 'https://t.me/test_kommunita_bot/kom' } },
-                    { text: 'Import Existing Wallet', 'web_app': { url: 'https://t.me/test_kommunita_bot/kom' } }
-                ]]
-                // inline_keyboard: [[createWalletButton, importWalletButton]],
+                keyboard: [
+                    [Markup.button.webApp("Create New Wallet", `${process.env.MINIAPP_URL}/wallet/create`)],
+                    [Markup.button.webApp("Import Existing Wallet", `${process.env.MINIAPP_URL}/wallet/import`)],
+                ],
+                resize_keyboard: true,
             }
         }
     );
@@ -89,9 +87,6 @@ export const welcome = async (ctx: Context) => {
         `🏆 You can create a new wallet OR import your existing wallet if you have interacted with Kommunitas before.\n\n` +
         `<i>Please note that if you delete the chat with me, you will need to start all over again with the wallet connection or creation.</i>`;
 
-    // Create a buttons for creating and exporting wallets
-    const createWalletButton = createCallBackBtn("Create New Wallet", "create_wallet");
-    const importWalletButton = createCallBackBtn("Import Existing Wallet", "import_wallet");
     // Send message with the import wallet button
     await ctx.replyWithVideo(
         KOM_WELCOME_IMAGE,
@@ -244,8 +239,9 @@ export const textHandler = async (ctx: any) => {
 
 export const messageHandler = async (ctx: any) => {
     const webAppData = ctx.message.web_app_data;
-    if (!webAppData) return;    
-
+    if (!webAppData) return;
+    
+    const { button_text } = webAppData;
     const { type, payload } = JSON.parse(webAppData.data);
 
 
@@ -253,15 +249,32 @@ export const messageHandler = async (ctx: any) => {
 
     switch (type) {
         case "NEW_ACCOUNT_ADDED":
-            ctx.session.address = payload.address;
+            ctx.session.account = payload.account;
+            ctx.reply(`😁 New Account <b><i><code>${payload.address.address}</code></i></b> <i>(${payload.address.name})</i> has been added.`, { parse_mode: "HTML" });
             return menu(ctx);
-        // ---------------------------------------------------------------- staking --------------------------------------------------------------------------------
-        case "Wallet 🧰":
-            return showWallets (ctx);
-        // return console.log(ctx)
-        case "Refresh ❄":
-            await ctx.scene.leave();
-            return menu_staking(ctx);
+        case "NEW_ACCOUNT_IMPORTED":
+            ctx.session.account = payload.account;
+            ctx.reply(`😁 New Account <b><i><code>${payload.address.address}</code></i></b> <i>(${payload.address.name})</i> has been imported.`, { parse_mode: "HTML" });
+            return menu(ctx);
+        case "NEW_WALLET_CREATED":
+            ctx.session.account = payload;
+            ctx.reply(`😁 New Wallet <b><i><code>${payload.address}</code></i></b> <i>(${payload.name})</i> has been created.`, { parse_mode: "HTML" });
+            return menu(ctx);
+        case "NEW_WALLET_IMPORTED":
+            ctx.session.account = payload;
+            ctx.reply(`😁 New Wallet <b><i><code>${payload.address}</code></i></b> <i>(${payload.name})</i> has been imported.`, { parse_mode: "HTML" });
+            return menu(ctx);
+        case "CHAIN_SWITCHED":
+            ctx.session.chainId = payload.chainId;
+
+            if (button_text.includes('💫')) {
+                return menu_staking (ctx);
+            }
+
+
+
+
+            return menu(ctx);
         case 'Switch to Arbitrum 💫':
             return swithChain_staking(ctx);
         case 'Switch to Polygon 💫':
