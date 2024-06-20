@@ -1,10 +1,10 @@
 import { 
     getLPStakingDetails, 
-} from "../../../utils";
-import { decrypt } from "../../../utils";
-import { stakeLP } from "../../../utils/staking";
-import { startNoWallet } from "../../main.controller";
-import { menu } from "./main.controller";
+} from "@/bot/utils";
+import { decrypt } from "@/bot/utils";
+import { stakeLP } from "@/bot/utils/staking";
+import { startNoWallet } from "@/bot/controllers/main.controller";
+import { menu } from "@/bot/controllers/staking/lp/main.controller";
 
 // when enter stakingV3Scene
 export const enterScene = async (ctx: any) => {

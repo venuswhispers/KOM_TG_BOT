@@ -1,8 +1,8 @@
-import { getStakingV3Detail } from "../../../utils";
-import { decrypt } from "../../../utils";
-import { unstakeKomV3 } from "../../../utils/staking";
-import { menu } from "./main.controller";
-import { startNoWallet } from "../../main.controller";
+import { getStakingV3Detail } from "@/bot/utils";
+import { decrypt } from "@/bot/utils";
+import { unstakeKomV3 } from "@/bot/utils/staking";
+import { menu } from "@/bot/controllers/staking/v3/main.controller";
+import { startNoWallet } from "@/bot/controllers/main.controller";
 
 //switch chain
 export const switchChain = async (ctx: any) => {

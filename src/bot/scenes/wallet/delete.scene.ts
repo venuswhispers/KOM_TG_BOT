@@ -1,9 +1,8 @@
 import { Scenes, Context } from 'telegraf';
-import { createCallBackBtn, createWallet } from "../../utils";
-import { startNoWallet } from '../../controllers/main.controller';
+import { startNoWallet } from "@/bot/controllers/main.controller";
 export const deleteWalletScene = new Scenes.BaseScene<Context>("deleteWalletScene");
-import { menu } from '../../controllers/main.controller';
-import { deleteWallet, showWallets } from '../../controllers/wallet/wallet.controller';
+import { menu } from '@/bot/controllers/main.controller';
+import { deleteWallet, showWallets } from '@/bot/controllers/wallet/wallet.controller';
 
 deleteWalletScene.enter(async (ctx: any) => {
     const { index } = ctx.scene.state;

@@ -1,4 +1,4 @@
-import { CHAIN, CONTRACT } from "../types";
+import { CHAIN, CONTRACT } from "@/types";
 import KOM_ABI from './abis/KOM.json';
 import KOMV_ABI from './abis/KOMV.json';
 import LP_ABI from './abis/LP.json';

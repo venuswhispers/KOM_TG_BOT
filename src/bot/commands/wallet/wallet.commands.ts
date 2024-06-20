@@ -2,7 +2,7 @@ import {
     exportWallet,
     createWallet,
     importWallet
-} from '../../controllers/wallet/wallet.controller';
+} from '@/bot/controllers/wallet/wallet.controller';
 
 export default (_bot: any) => {
 

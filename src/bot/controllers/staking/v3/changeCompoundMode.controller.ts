@@ -1,13 +1,13 @@
-import { createCallBackBtn, getDateAfterXDays, getStakershipDetails, getStakingV3Detail, getStakingV3StakedDetails, reduceAmount } from "../../../utils";
-import { chains } from "../../../../constants/config";
-import { getNativeTokenPrice } from "../../../utils";
-import { getTokenBalances } from "../../../utils";
-import { CONTRACTS } from "../../../../constants/config";
-import { getStakingV3Details } from "../../../utils";
-import { decrypt } from "../../../utils";
-import { calculateReard, stakeKomV3, transferStakerShip, accpetStakership, changeCompoundType } from "../../../utils/staking";
-import { startNoWallet } from "../../main.controller";
-import { menu } from "../v3/main.controller";
+import { createCallBackBtn, getDateAfterXDays, getStakershipDetails, getStakingV3Detail, getStakingV3StakedDetails, reduceAmount } from "@/bot/utils";
+import { chains } from "@/constants/config";
+import { getNativeTokenPrice } from "@/bot/utils";
+import { getTokenBalances } from "@/bot/utils";
+import { CONTRACTS } from "@/constants/config";
+import { getStakingV3Details } from "@/bot/utils";
+import { decrypt } from "@/bot/utils";
+import { calculateReard, stakeKomV3, transferStakerShip, accpetStakership, changeCompoundType } from "@/bot/utils/staking";
+import { startNoWallet } from "@/bot/controllers/main.controller";
+import { menu } from "@/bot/controllers/staking/v2/main.controller";
 
 const { ethers } = require('ethers');
 

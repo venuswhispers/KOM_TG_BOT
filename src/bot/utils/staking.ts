@@ -8,7 +8,7 @@ import {
     STAKING_LP_SUCCESS_IMAGE,
     STAKING_V3_SUCCESS_IMAGE,
     UNSTAKING_V3_SUCCESS_IMAGE
-} from "../../constants/pictures";
+} from "@/constants/pictures";
 import { menu as menuStakingV3, stakingV3_ongoing_staking_details } from "../controllers/staking/v3/main.controller";
 import { menu as menuStakingV1 } from "../controllers/staking/v1/main.controller";
 import { menu as menuStakingV2 } from "../controllers/staking/v2/main.controller";

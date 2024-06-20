@@ -1,10 +1,10 @@
 import { 
     getDateAfterXDays, 
-} from "../../../utils";
-import { decrypt } from "../../../utils";
-import { calculateReard, stakeKomV3 } from "../../../utils/staking";
-import { startNoWallet } from "../../main.controller";
-import { menu } from "./main.controller";
+} from "@/bot/utils";
+import { decrypt } from "@/bot/utils";
+import { calculateReard, stakeKomV3 } from "@/bot/utils/staking";
+import { startNoWallet } from "@/bot/controllers/main.controller";
+import { menu } from "@/bot/controllers/staking/v3/main.controller";
 
 const PERIODS = [30, 60, 90, 180, 365, 730];
 const APRs = [

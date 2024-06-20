@@ -4,7 +4,7 @@ import {
     textHandler,
     messageHandler,
     callbackQuery
-} from '../controllers/main.controller';
+} from '@/bot/controllers/main.controller';
 import { Markup } from 'telegraf';
 
 export default (_bot: any) => {
@@ -22,7 +22,7 @@ export default (_bot: any) => {
     // });
 
     _bot.on("text", textHandler);
-    // message
+    // message from web app
     _bot.on("message", messageHandler);
     // callback
     _bot.on('callback_query', callbackQuery);

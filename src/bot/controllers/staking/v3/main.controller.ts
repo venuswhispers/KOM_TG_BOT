@@ -4,19 +4,19 @@ import {
     getStakingV3StakedDetails,
     reduceAmount,
     formatNumber
-} from "../../../utils";
-import { chains } from "../../../../constants/config";
-import { getNativeTokenPrice } from "../../../utils";
-import { getTokenBalances } from "../../../utils";
-import { CONTRACTS } from "../../../../constants/config";
-import { getStakingV3Details } from "../../../utils";
-import { startNoWallet } from "../../main.controller";
-import { STAKEV3_PAST_DETAIL_ITEM } from "../../../../types";
-import { getStatistics, getChartData, getLeaderBoard } from "../../../utils";
-import { CHART_DATA_ITEM } from "../../../../types";
-import { getChartURL } from "../../../utils";
-import { STAKING_V3_BANNER_IMAGE } from "../../../../constants/pictures";
-
+} from "@/bot/utils";
+import { chains } from "@/constants/config";
+import { getNativeTokenPrice } from "@/bot/utils";
+import { getTokenBalances } from "@/bot/utils";
+import { CONTRACTS } from "@/constants/config";
+import { getStakingV3Details } from "@/bot/utils";
+import { startNoWallet } from "@/bot/controllers/main.controller";
+import { STAKEV3_PAST_DETAIL_ITEM } from "@/types";
+import { getStatistics, getChartData, getLeaderBoard } from "@/bot/utils";
+import { CHART_DATA_ITEM } from "@/types";
+import { getChartURL } from "@/bot/utils";
+import { STAKING_V3_BANNER_IMAGE } from "@/constants/pictures";
+import { Markup } from "telegraf";
 const { ethers } = require('ethers');
 
 const modes: Record<string, number> = { 'No Compound': 0, 'Compound My Staked $KOM only': 1, 'Compound The Amount + Reward': 2 };
@@ -24,11 +24,11 @@ const modes: Record<string, number> = { 'No Compound': 0, 'Compound My Staked $K
 // show staking menus
 export const menu = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
-    if (!ctx.session.account) {
-        return startNoWallet(ctx);
-    }
-    const address = ctx.session.address;
-    // const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
+    // if (!ctx.session.account) {
+    //     return startNoWallet(ctx);
+    // }
+    // const address = ctx.session.address;
+    const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
 
     const _chain = chains[chainId];
     // get token balances
@@ -62,9 +62,7 @@ export const menu = async (ctx: any) => {
         getStakershipDetails(137, address),
         getNativeTokenPrice(137)
     ]);
-
     const zeroAddress = '0x0000000000000000000000000000000000000000';
-    // await ctx.deleteMessage(loading.message_id).catch((err: any) => { });
 
     let msg =
         `💦 KomBot | <a href="https://staking.kommunitas.net/"><u>Website</u></a> | <a href='https://youtu.be/CkdGN54ThQI?si=1RZ0T531IeMGfgaQ'><u>Tutorials</u></a> 💦\n\n` +
@@ -125,7 +123,7 @@ export const menu = async (ctx: any) => {
                     ],
                     [
                         { text: 'Refresh 🎲' }, 
-                        { text: chainId === 137 ? 'Switch to Arbitrum 🎨' : 'Switch to Polygon 🎨' },
+                        Markup.button.webApp(chainId === 137 ? 'Switch to Arbitrum 🎨' : 'Switch to Polygon 🎨', `${process.env.MINIAPP_URL}?chainId=${chainId}&chain=true`),
                         { text: '👈 Back To Staking Menu' },
                     ]
                 ],

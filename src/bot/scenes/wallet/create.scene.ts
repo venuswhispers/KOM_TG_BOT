@@ -1,5 +1,5 @@
 import { Scenes, Context } from 'telegraf';
-import { createCallBackBtn, createWallet } from "../../utils";
+import { createCallBackBtn, createWallet } from "@/bot/utils";
 
 export const createWalletScene = new Scenes.BaseScene<Context>("createWalletScene");
 import { menu } from '../../controllers/main.controller';

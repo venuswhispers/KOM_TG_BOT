@@ -1,6 +1,6 @@
-import { STAKING_LP_BANNER_IMAGE } from "../../../../constants/pictures";
-import { getLPBalance, getLPStakingDetails } from "../../../utils";
-import { startNoWallet } from "../../main.controller";
+import { STAKING_LP_BANNER_IMAGE } from "@/constants/pictures";
+import { getLPBalance, getLPStakingDetails } from "@/bot/utils";
+import { startNoWallet } from "@/bot/controllers/main.controller";
 
 // show staking LP menus
 export const menu = async (ctx: any) => {

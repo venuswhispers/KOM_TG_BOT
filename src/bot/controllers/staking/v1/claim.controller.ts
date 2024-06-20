@@ -1,7 +1,7 @@
-import { decrypt } from "../../../utils";
-import { claimKomV1 } from "../../../utils/staking";
-import { startNoWallet } from "../../main.controller";
-import { menu } from "./main.controller";
+import { decrypt } from "@/bot/utils";
+import { claimKomV1 } from "@/bot/utils/staking";
+import { startNoWallet } from "@/bot/controllers/main.controller";
+import { menu } from "@/bot/controllers/staking/v1/main.controller";
 
 // when enter stakingV1Scene
 export const enterScene = async (ctx: any) => {

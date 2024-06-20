@@ -19,6 +19,7 @@ import {
 
 // commands
 import mainCommands from "./commands/main.commands";
+import stakingCommands from "./commands/staking/main.commands";
 import stakingV1Commands from "./commands/staking/stakingV1.commands";
 import stakingV2Commands from "./commands/staking/stakingV2.commands";
 import stakingV3Commands from "./commands/staking/stakingV3.commands";
@@ -65,11 +66,15 @@ export default () => {
 
   // commands settings
   walletCommands (_bot);
-  stakingLPCommands (_bot);
-  stakingV3Commands (_bot);
+  // staking comds
+  stakingCommands (_bot);
   stakingV1Commands (_bot);
   stakingV2Commands (_bot);
+  stakingV3Commands (_bot);
+  stakingLPCommands (_bot);
+  // launchpad comds
   launchpadCommands (_bot);
+  // main comds
   mainCommands (_bot);
   
   console.log("start..");

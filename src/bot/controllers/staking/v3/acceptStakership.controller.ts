@@ -1,7 +1,7 @@
-import { createCallBackBtn, getStakershipDetails } from "../../../utils";
-import { decrypt } from "../../../utils";
-import { accpetStakership } from "../../../utils/staking";
-import { startNoWallet } from "../../main.controller";
+import { createCallBackBtn, getStakershipDetails } from "@/bot/utils";
+import { decrypt } from "@/bot/utils";
+import { accpetStakership } from "@/bot/utils/staking";
+import { startNoWallet } from "@/bot/controllers/main.controller";
 import { menu } from "..";
 
 // when enter stakingV3Scene

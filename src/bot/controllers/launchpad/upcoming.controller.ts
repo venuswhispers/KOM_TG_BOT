@@ -1,11 +1,5 @@
-import { createCallBackBtn, getKOMTokenPrice, komAPI, reduceAmount } from "../../utils";
-import { chains } from "../../../constants/config";
-import { getNativeTokenPrice } from "../../utils";
-import { getTokenBalances } from "../../utils";
-import { CONTRACTS } from "../../../constants/config";
-import { startNoWallet } from "../main.controller";
-import { LAUNCHPAD_MAIN_LOGO } from "../../../constants/pictures";
-import { getProjects } from "../../utils/launchpad";
+import { createCallBackBtn, getKOMTokenPrice, komAPI, reduceAmount } from "@/bot/utils";
+import { getProjects } from "@/bot/utils/launchpad";
 import { IProject } from "@/types";
 
 

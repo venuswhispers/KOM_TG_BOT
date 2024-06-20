@@ -1,8 +1,8 @@
-import { menu } from "../v3/main.controller";
-import { getStakingV3StakedDetails, reduceAmount } from "../../../utils";
-import { decrypt } from "../../../utils";
-import { transferStakerShip } from "../../../utils/staking";
-import { startNoWallet } from "../../main.controller";
+import { menu } from "@/bot/controllers/staking/v3/main.controller";
+import { getStakingV3StakedDetails, reduceAmount } from "@/bot/utils";
+import { decrypt } from "@/bot/utils";
+import { transferStakerShip } from "@/bot/utils/staking";
+import { startNoWallet } from "@/bot/controllers/main.controller";
 const { ethers } = require('ethers');
 
 // when enter transferStakership scene

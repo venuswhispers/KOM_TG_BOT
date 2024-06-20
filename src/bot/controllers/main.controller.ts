@@ -1,4 +1,3 @@
-import { createCallBackBtn } from "../utils";
 import { Context } from "telegraf";
 import { Markup } from "telegraf";
 //////// staking ////////////////////////////////////////////////
@@ -43,10 +42,11 @@ import {
 } from './launchpad/vesting.controller';
 
 
-import { KOM_TOKEN_IMAGE, KOM_WELCOME_IMAGE } from "../../constants/pictures";
+import { KOM_TOKEN_IMAGE, KOM_WELCOME_IMAGE } from "@/constants/pictures";
 import { chart, leaderBoard } from "./staking/v3/main.controller";
 import { acceptStakershipScene } from "./staking/v3/acceptStakership.controller";
 import { connectWallet, showWallets } from "./wallet/wallet.controller";
+import { chains } from "@/constants/config";
 import { pay } from "telegraf/typings/button";
 
 
@@ -124,7 +124,7 @@ export const menu = async (ctx: any) => {
             parse_mode: "HTML",
             reply_markup: {
                 keyboard: [
-                    [Markup.button.webApp("Wallet 🧰", `${process.env.MINIAPP_URL}?chainId=${chainId}`), { text: 'Staking ⏱' }],
+                    [Markup.button.webApp("Wallet 🧰", `${process.env.MINIAPP_URL}?chainId=${chainId}&account=true&chain=true`), { text: 'Staking ⏱' }],
                     [{ text: 'LaunchPad 🚀' }, { text: 'Bridge 🖇' }],
                     [{ text: 'Buy KOM ⭐' }, { text: 'Earn 💎' }],
                 ],
@@ -244,7 +244,6 @@ export const messageHandler = async (ctx: any) => {
     const { button_text } = webAppData;
     const { type, payload } = JSON.parse(webAppData.data);
 
-
    console.log("from web app-----------", type, payload);
 
     switch (type) {
@@ -266,15 +265,20 @@ export const messageHandler = async (ctx: any) => {
             return menu(ctx);
         case "CHAIN_SWITCHED":
             ctx.session.chainId = payload.chainId;
-
+            await ctx.reply(`🎬 Switched to ${chains[ctx.session.chainId].name} chain`);
             if (button_text.includes('💫')) {
                 return menu_staking (ctx);
-            }
+            }  else if (button_text.includes('🎨')) {
+                return menu_staking_v3 (ctx);
+            } 
+            return menu (ctx);
+        case "ACCOUNT_CHANGED":
+            await ctx.reply(`🎬 Switched to account <b><i><code>${payload.address}</code></i></b> <i>(${payload.name})</i>`, { parse_mode: "HTML" })
+            ctx.session.account = payload;
+            return menu (ctx);
 
 
 
-
-            return menu(ctx);
         case 'Switch to Arbitrum 💫':
             return swithChain_staking(ctx);
         case 'Switch to Polygon 💫':

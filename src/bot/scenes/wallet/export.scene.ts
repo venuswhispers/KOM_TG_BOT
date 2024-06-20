@@ -1,6 +1,6 @@
 import { Scenes, Context } from 'telegraf';
-import { generateAccount, createCallBackBtn, createWallet } from "../../utils";
-import { decrypt } from '../../utils';
+import { generateAccount, createCallBackBtn, createWallet } from "@/bot/utils";
+import { decrypt } from '@/bot/utils';
 import { menu, startNoWallet } from '../../controllers/main.controller';
 
 export const exportWalletScene = new Scenes.BaseScene<Context>("exportWalletScene");

@@ -1,11 +1,10 @@
-import { createCallBackBtn, getKOMTokenPrice, reduceAmount } from "../../utils";
-import { chains } from "../../../constants/config";
-import { getNativeTokenPrice } from "../../utils";
-import { getTokenBalances } from "../../utils";
-import { CONTRACTS } from "../../../constants/config";
-import { startNoWallet } from "../main.controller";
+import { createCallBackBtn, getKOMTokenPrice, reduceAmount } from "@/bot/utils";
+import { chains } from "@/constants/config";
+import { getNativeTokenPrice } from "@/bot/utils";
+import { getTokenBalances } from "@/bot/utils";
+import { CONTRACTS } from "@/constants/config";
 import { Markup } from "telegraf";
-import { ACCOUNT } from "../../../types";
+import { ACCOUNT } from "@/types";
 
 // show staking menus
 export const menu = async (ctx: any) => {

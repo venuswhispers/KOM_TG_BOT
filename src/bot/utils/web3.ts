@@ -1,6 +1,6 @@
 import { utils } from "ethers";
 import { chains, CONTRACTS } from "../../constants/config";
-import { STAKEV3_DETAIL_ITEM } from "../../types";
+import { STAKEV3_DETAIL_ITEM } from "@/types";
 import { getKOMTokenPrice } from "./utils";
 const { ethers } = require('ethers');
 

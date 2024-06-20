@@ -2,7 +2,7 @@ import crypto from 'crypto-js';
 import axios from 'axios';
 import { chains } from '../../constants/config';
 import QuickChart from 'quickchart-js';
-import { CHART_DATA_ITEM } from "../../types";
+import { CHART_DATA_ITEM } from "@/types";
 const { createCanvas, loadImage } = require('canvas');
 import fs from 'fs';
 

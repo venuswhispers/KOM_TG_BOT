@@ -1,6 +1,6 @@
-import { KOM_TOKEN_IMAGE } from "../../../constants/pictures";
-import { WALLET } from "../../../types";
-import { startNoWallet } from "../main.controller";
+import { KOM_TOKEN_IMAGE } from "@/constants/pictures";
+import { WALLET } from "@/types";
+import { startNoWallet } from "@/bot/controllers/main.controller";
 
 // Handle create wallet button click
 export const createWallet = async (ctx: any) => {
