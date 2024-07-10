@@ -1,9 +1,11 @@
 export type CHAIN = {
     name: string,
     symbol: string,
+    ticker: string,
     rpc: string,
     chainId: number,
-    explorer: string
+    explorer: string,
+    logo: string,
 }
 
 export type ACCOUNT = {
@@ -40,4 +42,11 @@ export type CONTRACT = {
         address: string,
         abi: any
     },
+}
+
+export type CHAIN_BALANCE = {
+    chain: string,
+    ticker: string,
+    usdt: number,
+    eth: number,
 }

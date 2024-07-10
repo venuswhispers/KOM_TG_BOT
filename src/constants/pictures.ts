@@ -12,3 +12,4 @@ export const STAKING_V3_SUCCESS_IMAGE = 'https://ipfs.io/ipfs/QmNZyvWByRbKPKLWau
 export const STAKING_LP_SUCCESS_IMAGE = 'https://ipfs.io/ipfs/QmNZyvWByRbKPKLWauEZdqD8L6pFomB3C7BeiBgrE7u5JW'; // done
 export const UNSTAKING_V3_SUCCESS_IMAGE = 'https://ipfs.io/ipfs/QmbD9fRUb7oULqBKwz3yKHkyRD3G8ZCiaDtVZ8b71XXFh8'; //done
 export const LAUNCHPAD_MAIN_LOGO = 'https://launchpad.kommunitas.net/static/media/priority-vs-secure-vs-exclusive-banner.7902d57f75c225bbedfb.webp';
+export const PLACE_HOLDER = 'https://launchpad.kommunitas.net/static/media/card-background.b45cc839268e94506e71.png'

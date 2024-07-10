@@ -1,37 +1,23 @@
 import { getStakingV3Detail } from "@/bot/utils";
-import { decrypt } from "@/bot/utils";
-import { unstakeKomV3 } from "@/bot/utils/staking";
 import { menu } from "@/bot/controllers/staking/v3/main.controller";
+import { Markup } from "telegraf";
 import { startNoWallet } from "@/bot/controllers/main.controller";
-
-//switch chain
-export const switchChain = async (ctx: any) => {
-    const chainId = ctx.session.chainId ?? 137;
-    if (chainId === 137 || !chainId) {
-        ctx.session.chainId = 42161;
-    } else {
-        ctx.session.chainId = 137;
-    }
-}
 
 // when entering withdrawV3 scene
 export const enterScene = async (ctx: any) => {
-    
-    const chainId = ctx.session.chainId ?? 137;
-    if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        await ctx.scene.leave();
-        return startNoWallet (ctx);
-    }
 
-    const _walletIndex = ctx.session.walletIndex ?? 0;
-    const _wallet = ctx.session.wallet[_walletIndex];
-    
-    const address = _wallet.address;
+    const chainId = ctx.session.chainId ?? 137;
+    if (!ctx.session.account) {
+        return startNoWallet(ctx);
+    } else if (chainId !== 137 && chainId !== 42161) {
+        return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
+    }
+    const address = ctx.session.account.address;
     // const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
-        
+
     if (!ctx.scene.state.withdraw) {
         ctx.reply(
-            `\n⚠  Not selected withdrawal staking, Please select staking item to withdraw.`, 
+            `\n⚠  Not selected withdrawal staking, Please select staking item to withdraw.`,
             {
                 parse_mode: 'HTML',
             }
@@ -39,7 +25,7 @@ export const enterScene = async (ctx: any) => {
         await ctx.scene.leave();
         return;
     }
-    
+
     const { version, index } = ctx.scene.state.withdraw;
     await ctx.reply('⏰ Loading selected staking detail ...');
     const { amount } = await getStakingV3Detail(chainId, address, index);
@@ -62,12 +48,11 @@ export const enterScene = async (ctx: any) => {
 
 // input token amount
 export const textHandler = async (ctx: any) => {
-
+    const chainId = ctx.session.chainId ?? 137;
     if (ctx.message.text === '👈 BACK') {
-        await ctx.scene.leave ();
-        return menu (ctx);
+        await ctx.scene.leave();
+        return menu(ctx);
     }
-
     const { withdraw: { version, index, available, withdrawAmount } } = ctx.scene.state;
 
     if (!withdrawAmount) { // input withdraw amount
@@ -97,51 +82,18 @@ export const textHandler = async (ctx: any) => {
                 }
             });
         } else {
-            ctx.scene.state.withdraw.withdrawAmount = withdrawAmount;
-            ctx.reply(`\n✔  You entered ${withdrawAmount} $KOM tokens to withdraw, Please enter your password to send transaction`, {
+            ctx.reply(`\n✔  You entered ${withdrawAmount} $KOM tokens to withdraw, \n\nDo you agree to run this transaction? ...👇`, {
                 parse_mode: 'HTML',
                 reply_markup: {
                     force_reply: true,
                     keyboard: [
+                        [Markup.button.webApp("✔ O K", `${process.env.MINIAPP_URL}/transactions/staking/v3/unstake?chainId=${chainId}&withdrawAmount=${withdrawAmount}&index=${index}`)],
                         [{ text: '👈 BACK' }],
                     ],
                     one_time_keyboard: true,
                     resize_keyboard: true,
                 }
             });
-        }
-    } else { // input password
-        const password = ctx.message.text;
-        await ctx.deleteMessage(ctx.message.message_id).catch((err: any) => { });
-        
-        if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-            await ctx.scene.leave();
-            startNoWallet(ctx);
-            return;
-        }
-        const _walletIndex = ctx.session.walletIndex ?? 0;
-        const _wallet = ctx.session.wallet[_walletIndex];
-
-        try {
-            const _privateKey = decrypt(_wallet.privateKey, password);
-            if (!_privateKey) throw "no key";
-            await unstakeKomV3(ctx, _wallet.address, _privateKey, withdrawAmount, index);
-            ctx.scene.leave();
-        } catch (err) {
-            ctx.reply(
-                "😔 Wrong password. Please re-enter password.",
-                {
-                    reply_markup: {
-                        force_reply: true,
-                        input_field_placeholder: 'Enter password',
-                        keyboard: [
-                            [{ text: '👈 BACK' }],
-                        ],
-                        one_time_keyboard: true,
-                        resize_keyboard: true,
-                    }
-                }
-            );
         }
     }
 }

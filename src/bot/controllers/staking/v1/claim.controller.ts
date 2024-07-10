@@ -1,33 +1,33 @@
-import { decrypt } from "@/bot/utils";
-import { claimKomV1 } from "@/bot/utils/staking";
 import { startNoWallet } from "@/bot/controllers/main.controller";
 import { menu } from "@/bot/controllers/staking/v1/main.controller";
+import { Markup } from "telegraf";
 
 // when enter stakingV1Scene
 export const enterScene = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
     if (chainId !== 137) {
-        await ctx.scene.leave ();
+        await ctx.scene.leave();
         return ctx.reply(`⚠ Please Switch To POLYGON Network`);
     }
 
     await ctx.reply("⏰ Loading your stakingV1 details ...");
-    
+
     if (!ctx.session.account) {
         return startNoWallet(ctx);
+    } else if (chainId !== 137 && chainId !== 42161) {
+        return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
     }
-    const address = ctx.session.address;
+    const address = ctx.session.account.address;
     // const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
 
-    const msg = 
-        `<b>💎 Your Staked $KOM tokens:</b>  <b>${ 0.0 }</b> <i><a href='https://polygonscan.com/address/0xC004e2318722EA2b15499D6375905d75Ee5390B8'>$KOM</a></i>\n\n` +
-        `⚠ <i>Please enter your password to send transaction.</i>`;
+    const msg = `⚠ <i>Do you want to claim $KOM tokens from V1 staking pool? ...👇</i>`;
 
     ctx.reply(msg, {
         parse_mode: 'HTML',
         reply_markup: {
             force_reply: true,
             keyboard: [
+                [Markup.button.webApp("✔ O K", `${process.env.MINIAPP_URL}/transactions/staking/v1/unstake?chainId=137`)],
                 [{ text: '👈 BACK' }],
             ],
             one_time_keyboard: true,
@@ -43,43 +43,9 @@ export const enterScene = async (ctx: any) => {
 export const textHandler = async (ctx: any) => {
     const _text = ctx.message.text;
     if (_text === '👈 BACK') {
-        await ctx.scene.leave ();
-        return menu (ctx);
-    } else {
-
-        const password = ctx.message.text;
-        await ctx.deleteMessage(ctx.message.message_id).catch((err: any) => { });
-
-        if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-            await ctx.scene.leave();
-            startNoWallet (ctx);
-            return;
-        }
-        const _walletIndex = ctx.session.walletIndex ?? 0;
-        const _wallet = ctx.session.wallet[_walletIndex];
-
-        try {
-            const _privateKey = decrypt(_wallet.privateKey, password);
-            if (!_privateKey) throw "no key";
-            await claimKomV1(ctx, _privateKey);
-            ctx.scene.leave();
-        } catch (err) {
-            ctx.reply(
-                "😔 Wrong password. Please re-enter password.",
-                {
-                    parse_mode: 'HTML',
-                    reply_markup: {
-                        force_reply: true,
-                        keyboard: [
-                            [{ text: '👈 BACK' }],
-                        ],
-                        one_time_keyboard: true,
-                        resize_keyboard: true,
-                    }
-                }
-            );
-        }
-    }
+        await ctx.scene.leave();
+        return menu(ctx);
+    } 
 }
 
 export const callbackQuery = async (ctx: any) => {

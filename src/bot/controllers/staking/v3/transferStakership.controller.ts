@@ -1,9 +1,8 @@
 import { menu } from "@/bot/controllers/staking/v3/main.controller";
 import { getStakingV3StakedDetails, reduceAmount } from "@/bot/utils";
-import { decrypt } from "@/bot/utils";
-import { transferStakerShip } from "@/bot/utils/staking";
 import { startNoWallet } from "@/bot/controllers/main.controller";
-const { ethers } = require('ethers');
+import { Markup } from "telegraf";
+const ethers = require("ethers");
 
 // when enter transferStakership scene
 export const enterScene = async (ctx: any) => {
@@ -11,13 +10,13 @@ export const enterScene = async (ctx: any) => {
     ctx.session.transferStakershipAddress = undefined;
     await ctx.reply('⏰ Loading Your staking details...');
     const chainId = ctx.session.chainId ?? 137;
-    if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        await ctx.scene.leave();
-        return startNoWallet (ctx);
-    }
-    const _walletIndex = ctx.session.walletIndex ?? 0;
-    const _wallet = ctx.session.wallet[_walletIndex];
-    const address = _wallet.address;
+    if (!ctx.session.account) {
+        return startNoWallet(ctx);
+    } else if (chainId !== 137 && chainId !== 42161) {
+        return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
+    }          
+    const address = ctx.session.account.address;
+    // const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
     // const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
 
     const { stakedAmount, stakerPendingReward, userStakedLength, komTokenPrice } = await getStakingV3StakedDetails(chainId, address);
@@ -50,6 +49,7 @@ export const enterScene = async (ctx: any) => {
 
 // input token amount
 export const textHandler = async (ctx: any) => {
+    const chainId = ctx.session.chainId ?? 137;
 
     if (ctx.message.text === '👈 BACK') {
         await ctx.scene.leave ();
@@ -100,14 +100,14 @@ export const textHandler = async (ctx: any) => {
             return;
         }
 
-        ctx.scene.state.transferStakershipAddress = transferStakershipAddress;
         await ctx.reply(
-            `🗨 You are going to transfer your stakership to <code><i><b>${transferStakershipAddress}</b></i></code>\n\nPlease enter your password to send transaction.`,
+            `🗨 You are going to transfer your stakership to <code><i><b>${transferStakershipAddress}</b></i></code>\n\n✔ Do you want to execute this transaction ...👇.`,
             {
                 parse_mode: "HTML",
                 reply_markup: {
                     force_reply: true,
                     keyboard: [
+                        [Markup.button.webApp("✔ O K", `${process.env.MINIAPP_URL}/transactions/staking/v3/stakership/transfer?chainId=${chainId}&receiver=${transferStakershipAddress}`)],
                         [{ text: '👈 BACK' }],
                     ],
                     one_time_keyboard: true,
@@ -115,39 +115,7 @@ export const textHandler = async (ctx: any) => {
                 }
             }
         );
-    } else {
-        const password = ctx.message.text;
-        await ctx.deleteMessage(ctx.message.message_id).catch((err: any) => { });
-
-        if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-            await ctx.scene.leave();
-            startNoWallet (ctx);
-            return;
-        }
-        const _walletIndex = ctx.session.walletIndex ?? 0;
-        const _wallet = ctx.session.wallet[_walletIndex];
-
-        try {
-            const _privateKey = decrypt(_wallet.privateKey, password);
-            if (!_privateKey) throw "no key";
-            await transferStakerShip(ctx, _privateKey, transferStakershipAddress);
-            ctx.scene.leave();
-        } catch (err) {
-            ctx.reply(
-                "😔 Wrong password. Please re-enter password.",
-                {
-                    reply_markup: {
-                        force_reply: true,
-                        keyboard: [
-                            [{ text: '👈 BACK' }],
-                        ],
-                        one_time_keyboard: true,
-                        resize_keyboard: true,
-                    }
-                }
-            );
-        }
-    }
+    } 
 }
 
 // enter transferStakership scene
@@ -160,15 +128,4 @@ export const transferStakershipScene = async (ctx: any) => {
             parse_mode: 'HTML',
         });
     }
-}
-
-//switch chain
-export const switchChain = async (ctx: any) => {
-    const chainId = ctx.session.chainId ?? 137;
-    if (chainId === 137 || !chainId) {
-        ctx.session.chainId = 42161;
-    } else {
-        ctx.session.chainId = 137;
-    }
-    menu(ctx);
 }

@@ -1,40 +1,19 @@
-import { createCallBackBtn, getDateAfterXDays, getStakershipDetails, getStakingV3Detail, getStakingV3StakedDetails, reduceAmount } from "@/bot/utils";
-import { chains } from "@/constants/config";
-import { getNativeTokenPrice } from "@/bot/utils";
-import { getTokenBalances } from "@/bot/utils";
-import { CONTRACTS } from "@/constants/config";
-import { getStakingV3Details } from "@/bot/utils";
-import { decrypt } from "@/bot/utils";
-import { calculateReard, stakeKomV3, transferStakerShip, accpetStakership, changeCompoundType } from "@/bot/utils/staking";
+import { getStakingV3Detail } from "@/bot/utils";
 import { startNoWallet } from "@/bot/controllers/main.controller";
-import { menu } from "@/bot/controllers/staking/v2/main.controller";
+import { menu } from "@/bot/controllers/staking/v3/main.controller";
+import { Markup } from "telegraf";
 
-const { ethers } = require('ethers');
-
-const PERIODS = [30, 60, 90, 180, 365, 730];
-const APRs = [
-    '(or approx. 2% p.a)',
-    '(or approx. 3% p.a)',
-    '(or approx. 4% p.a)',
-    '(or approx. 6% p.a)',
-    '(or approx. 8% p.a)',
-    '(or approx. 10% p.a)',
-];
 const modes: Record<string, number> = { 'No Compound': 0, 'Compound My Staked $KOM only': 1, 'Compound The Amount + Reward': 2 };
-
 
 // when enter stakingV3Scene
 export const enterScene = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
-    if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        await ctx.scene.leave();
-        return startNoWallet (ctx);
+    if (!ctx.session.account) {
+        return startNoWallet(ctx);
+    } else if (chainId !== 137 && chainId !== 42161) {
+        return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
     }
-
-    const _walletIndex = ctx.session.walletIndex ?? 0;
-    const _wallet = ctx.session.wallet[_walletIndex];
-
-    const address = _wallet.address;
+    const address = ctx.session.account.address;
     // const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
 
     if (!ctx.scene.state.state) {
@@ -44,7 +23,7 @@ export const enterScene = async (ctx: any) => {
         await ctx.scene.leave();
         return;
     }
-    const { version, index } = ctx.scene.state.state;
+    const { index } = ctx.scene.state.state;
     await ctx.reply(
         '⏰ Loading selected staking detail ...',
         {
@@ -100,45 +79,12 @@ export const textHandler = async (ctx: any) => {
                 }
             }
         );
-    } else {
-        const password = ctx.message.text;
-        await ctx.deleteMessage(ctx.message.message_id).catch((err: any) => { });
-
-        if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-            await ctx.scene.leave();
-            startNoWallet(ctx);
-            return;
-        }
-        const _walletIndex = ctx.session.walletIndex ?? 0;
-        const _wallet = ctx.session.wallet[_walletIndex];
-
-        try {
-            const _privateKey = decrypt(_wallet.privateKey, password);
-            if (!_privateKey) throw "no key";
-            await changeCompoundType(ctx, _wallet.address, _privateKey, index, newCompoundType);
-            ctx.scene.leave();
-        } catch (err) {
-            ctx.reply(
-                "😔 Wrong password. Please re-enter password.",
-                {
-                    parse_mode: 'HTML',
-                    reply_markup: {
-                        force_reply: true,
-                        keyboard: [
-                            [{ text: '👈 BACK' }],
-                        ],
-                        one_time_keyboard: true,
-                        resize_keyboard: true,
-                    }
-                }
-            );
-        }
     }
 }
-
 // when click option for stakingV3 ( compound mode, days, )
 export const callbackQuery = async (ctx: any) => {
     const selectedOption = ctx.callbackQuery.data;
+    const chainId = ctx.session.chainId ?? 137;
     if (Object.keys(modes).includes(selectedOption)) { // select compound option
         ctx.answerCbQuery(`You selected: ${selectedOption}`);
         await ctx.reply('⏰ Loading ...');
@@ -160,11 +106,13 @@ export const callbackQuery = async (ctx: any) => {
         } else {
             ctx.scene.state.state.newCompoundType = newCompoundType;
             ctx.reply(
-                `⚠ You have selected *<b><i>${selectedOption}</i></b>*.\nPlease enter your password to send transaction.`,
+                `⚠ You have selected *<b><i>${selectedOption}</i></b>*.\n\nDo you agree to run this transaction? ...👇`,
                 {
                     parse_mode: "HTML",
                     reply_markup: {
+                        force_reply: true,
                         keyboard: [
+                            [Markup.button.webApp("✔ O K", `${process.env.MINIAPP_URL}/transactions/staking/v3/change?chainId=${chainId}&compoundMode=${newCompoundType}&index=${index}`)],
                             [{ text: '👈 BACK' }],
                         ],
                         one_time_keyboard: true,

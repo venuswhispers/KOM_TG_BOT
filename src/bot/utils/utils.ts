@@ -3,7 +3,8 @@ import axios from 'axios';
 import { chains } from '../../constants/config';
 import QuickChart from 'quickchart-js';
 import { CHART_DATA_ITEM } from "@/types";
-const { createCanvas, loadImage } = require('canvas');
+// const { createCanvas, loadImage } = require('canvas');
+import { createCanvas, loadImage } from 'canvas';
 import fs from 'fs';
 
 export const encrypt = (text: string, key?: string) => {
@@ -73,7 +74,7 @@ export const getChartData = async (chainId: number) => {
 export const getKOMTokenPrice = async () => {
     const { status, result } = await komAPI(`https://api.kommunitas.net/v1/website/statistic`);
     if (status === 'success') {
-        return result.value;
+        return Number(result.value);
     } else {
         return 0;
     }
@@ -218,7 +219,7 @@ export const reduceAmount = (number: number | string | unknown | bigint, len = 4
  * @returns string
  *
  */
-export const formatNumber = (number: number | string | unknown | bigint, len = 4) => {
+export const formatNumber = (number: number | string | unknown | bigint, len = 2) => {
     if (Number(number) === 0 && isNaN(Number(number))) return 0;
     let [num, _decimal] = String(number).split(".");
     let _num = "";
@@ -229,34 +230,121 @@ export const formatNumber = (number: number | string | unknown | bigint, len = 4
     }
     _num += num[0];
     let str = _num.split("").reverse().reduce((acc: string, item: string) => acc += item, "");
-    if (_decimal) str += `.${_decimal.substring(0, 2)}`;
+    if (_decimal) str += `.${_decimal.substring(0, len)}`;
 
     return str;
 };
 
-export const drawImage = async () => {
-    const mainImageUrl = 'https:\/\/kommunitas.net\/assets\/launchpads\/iko-72e1fecd5cf433598783d4f54de03d88702edd4fd6b815f5692c2f37029670a1.png';
-    const logoImageUrl = 'https:\/\/kommunitas.net\/assets\/launchpads\/iko-4814b15250656e8a3a17d75e81a9f99c3aeae52962c75026995899b9bcd64da6.png';
-
-    const canvas = createCanvas(800, 600); // Set canvas dimensions as needed
+export const drawLogoWithBanner = async (mainImageUrl: string, logoImageUrl: string) => {
+    // Create a canvas and context for drawing
+    const canvas = createCanvas(400, 180); // Set canvas dimensions as needed
     const ctx = canvas.getContext('2d');
-
     // Load the main image
-    loadImage(mainImageUrl).then((mainImage: any) => {
-        // Draw the main image on the canvas
-        ctx.drawImage(mainImage, 0, 0, canvas.width, canvas.height);
+    const mainImage = await loadImage(mainImageUrl);
+    ctx.drawImage(mainImage, 0, 0, canvas.width, canvas.height);
+    const logoImage = await loadImage(logoImageUrl);
+    ctx.beginPath();
+    ctx.arc(60, 60, 40, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.clip();
+    // Draw the logo image within the circular clipping path
+    ctx.drawImage(logoImage, 20, 20, 80, 80); // Adjust position and size as needed
+    // Convert the canvas to a buffer
+    const buffer: Buffer = canvas.toBuffer('image/png');
+    return buffer;
+}
+/**
+ * get paingation items including buttons, and total count
+ * @param total 
+ * @param pageNum 
+ * @param page 
+ * @returns 
+ */
+export const getPaginationButtons = (total: number, pageNum: number, page: number) => {
+    // get pagination total count
+    const count = ( total % pageNum === 0 ) ? Math.floor(total / pageNum) : Math.floor(total / pageNum) + 1;
+    if (page < 1) {
+        page = 1;
+    } else if (page > count) {
+        page = count;
+    }
+    // buttons
+    let buttons: { text: string|undefined }[] = [];
+    if (count <= 10) {
+        buttons = [
+            page <= 1 ? undefined : { text: '👈 back' },
+            ...new Array(count).fill("").map((item: number, index: number) => ({ text: String(index + 1) })),
+            page >= count ? undefined : { text: 'next 👉' },
+        ];
+    } else if (page < 5) {
+        buttons = [
+            page <= 1 ? undefined : { text: '👈 back' },
+            { text: '1' },
+            { text: '2' },
+            { text: '3' },
+            { text: '4' },
+            { text: '...' },
+            { text: String(count-3) },
+            { text: String(count-2) },
+            { text: String(count-1) },
+            { text: String(count) },
+            { text: 'next 👉' }
+        ];
+    } else if (page > count - 4) {
+        buttons = [
+            { text: '👈 back' },
+            { text: '1' },
+            { text: '2' },
+            { text: '3' },
+            { text: '4' },
+            { text: '...' },
+            { text: String(count-3) },
+            { text: String(count-2) },
+            { text: String(count-1) },
+            { text: String(count) },
+            page >= count ? undefined : { text: 'next 👉' },
+        ];
+    } else {
+        buttons = [
+            { text: '👈 back' },
+            { text: '1' },
+            { text: '2' },
+            { text: '...' },
+            { text: String(page - 1) },
+            { text: String(page) },
+            { text: String(page + 1) },
+            { text: '...' },
+            { text: String(count-1) },
+            { text: String(count) },
+            { text: 'next 👉' }
+        ];
+    }
+    return {
+        buttons: buttons.filter((item: any) => item !== undefined).map((item: { text: string }) => ( item.text === String(page) ? ({ text: `${item.text} 👇` }) : ({ ...item }))),
+        count
+    }
+}
+/**
+ * calculate remaining time from ...
+ * @param from 
+ * @param to 
+ * @returns 
+ */
+export const calcRemainingTime = (from: number, to: number) => {
+    const distance = new Date(to).getTime() - new Date(from).getTime (); 
+    let days: string | number = Math.floor(distance / (1000 * 60 * 60 * 24));
+    let hours: string | number = Math.floor(
+      (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    let minutes: string | number = Math.floor(
+      (distance % (1000 * 60 * 60)) / (1000 * 60)
+    );
+    let seconds: string | number = Math.floor((distance % (1000 * 60)) / 1000);
 
-        // Load the logo image
-        loadImage(logoImageUrl).then((logoImage: any) => {
-            // Draw the logo image in the top-left corner
-            ctx.drawImage(logoImage, 10, 10, 100, 100); // Adjust position and size as needed
+    days = days > 9 ? days : days > 0 ? "0" + days : "0";
+    hours = hours > 9 ? hours : hours > 0 ? "0" + hours : "0";
+    minutes = minutes > 9 ? minutes : minutes > 0 ? "0" + minutes : "0";
+    seconds = seconds > 9 ? seconds : seconds > 0 ? "0" + seconds : "0";
 
-            // Convert the canvas to a buffer
-            const buffer = canvas.toBuffer('image/png');
-
-            // Save the image buffer to a file or send it to the frontend
-            // For example, save to a file
-            fs.writeFileSync('resultImage.png', buffer);
-        });
-    });
+    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }

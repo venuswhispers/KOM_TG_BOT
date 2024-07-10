@@ -17,20 +17,23 @@ import { CHART_DATA_ITEM } from "@/types";
 import { getChartURL } from "@/bot/utils";
 import { STAKING_V3_BANNER_IMAGE } from "@/constants/pictures";
 import { Markup } from "telegraf";
-const { ethers } = require('ethers');
+import { ethers } from "ethers";
 
 const modes: Record<string, number> = { 'No Compound': 0, 'Compound My Staked $KOM only': 1, 'Compound The Amount + Reward': 2 };
 
 // show staking menus
 export const menu = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
-    // if (!ctx.session.account) {
-    //     return startNoWallet(ctx);
-    // }
-    // const address = ctx.session.address;
-    const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
-
     const _chain = chains[chainId];
+    if (!ctx.session.account) {
+        return startNoWallet(ctx);
+    } else if (chainId !== 137 && chainId !== 42161) {
+        return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
+    }
+    const address = ctx.session.account.address;
+    console.log("stakingv3 menu====>", {address});
+    // const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
+    // const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
     // get token balances
     await ctx.reply('⏰ Loading staking v3 details from networks ...');
     const [
@@ -65,9 +68,10 @@ export const menu = async (ctx: any) => {
     const zeroAddress = '0x0000000000000000000000000000000000000000';
 
     let msg =
-        `💦 KomBot | <a href="https://staking.kommunitas.net/"><u>Website</u></a> | <a href='https://youtu.be/CkdGN54ThQI?si=1RZ0T531IeMGfgaQ'><u>Tutorials</u></a> 💦\n\n` +
+        `KomBot | <a href="https://staking.kommunitas.net/">Staking</a> | <a href='https://youtu.be/CkdGN54ThQI?si=1RZ0T531IeMGfgaQ'>Tutorials</a>\n\n` +
         `🏆 Stake <a href='${_chain.explorer}/address/${CONTRACTS[chainId].KOM.address}'>$KOM</a> to earn rewards and get guaranteed allocation for the Launchpad. If you encounter any difficulties, please visit this <a href='https://youtu.be/CkdGN54ThQI?si=1RZ0T531IeMGfgaQ'>YouTube tutorial</a> for step-by-step guidance.\n` +
-        (address ? `\nYour wallet address is: <code>${address}</code><i> (Tap to copy)</i>` : '');
+        (address ? `\nYour wallet address is: <code>${address}</code><i> (Tap to copy)</i>\n` : '\n') +
+        `<b><i>(current chain: ${_chain.name})</i></b>`;
     const _arbitrum = 
         `\n\n======== ARBITRUM ========\n` +
         `- Balance: <b>${reduceAmount(nativeBalance)}</b> <i>$ETH</i>   ($${reduceAmount(nativeTokenPrice * Number(nativeBalance))})` +
@@ -84,7 +88,7 @@ export const menu = async (ctx: any) => {
         `\n- PendingReward: <b>${reduceAmount(stakerPendingReward_Pol)} $KOM</b>   <i>($${reduceAmount(stakerPendingReward_Pol * komTokenPrice_Pol)})</i>` +
         ( pendingStakership_Pol !== zeroAddress ? `\n⚠  Your stakership is pending to <i><b><code>${pendingStakership_Pol}</code></b></i>` : '') +
         ( originStakership_Pol !== zeroAddress ? `\n⚠  You have been requested to transfer the $KOM staked from <i><b><code>${originStakership_Pol}</code></b></i>\nPlease click "<b><i>Accept Stakership</i></b>" button to accept it.`: '' );
-    const _footer = `\n\n🗨 Click on the Refresh button to update your current staking details. <b><i>(current chain: ${_chain.name})</i></b>`;
+    const _footer = `\n\n🗨 Click on the Refresh button to update your current staking details.`;
 
     if (chainId === 137) {
         msg += _polygon + _arbitrum;
@@ -123,7 +127,7 @@ export const menu = async (ctx: any) => {
                     ],
                     [
                         { text: 'Refresh 🎲' }, 
-                        Markup.button.webApp(chainId === 137 ? 'Switch to Arbitrum 🎨' : 'Switch to Polygon 🎨', `${process.env.MINIAPP_URL}?chainId=${chainId}&chain=true`),
+                        Markup.button.webApp(chainId === 137 ? 'Switch to Arbitrum 🎨' : 'Switch to Polygon 🎨', `${process.env.MINIAPP_URL}?chainId=${chainId}&forChainSelection=true`),
                         { text: '👈 Back To Staking Menu' },
                     ]
                 ],
@@ -139,15 +143,17 @@ export const menu = async (ctx: any) => {
 // show stakingV3 ongoing details
 export const stakingV3_ongoing_staking_details = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
-    if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        return startNoWallet(ctx);
-    }
-    const _walletIndex = ctx.session.walletIndex ?? 0;
-    const _wallet = ctx.session.wallet[_walletIndex];
-    const address = _wallet.address;
-    // const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
-
     const _chain = chains[chainId];
+    if (!ctx.session.account) {
+        return startNoWallet(ctx);
+    } else if (chainId !== 137 && chainId !== 42161) {
+        return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
+    }
+    const { address, name } = ctx.session.account;
+    // const { address, name } = {
+    //     address: '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3',
+    //     name: 'test'
+    // };
     // get token balances
     await ctx.reply('⏰ Loading token balances...');
     const {
@@ -164,7 +170,7 @@ export const stakingV3_ongoing_staking_details = async (ctx: any) => {
 
     const message =
         `🏆 You can check your stakingV3 details.\n` +
-        `<code>${address}</code><i> (${_wallet.name})</i>` +
+        `<code>${address}</code><i> (${name})</i>` +
         `\nBalance: <b>${reduceAmount(nativeBalance)}</b> <i>${_chain.symbol}</i>   ($${nativeTokenPrice * Number(nativeBalance)})` +
         `\n$KOM: <b>${komBalance}</b>  <b><i>($${reduceAmount(komBalance*komTokenPrice)})</i></B>` +
         `\n$KOMV: <b>${komvBalance}</b>` +
@@ -211,14 +217,15 @@ export const stakingV3_ongoing_staking_details = async (ctx: any) => {
 // show past staking details
 export const staingV3_past_staking_details = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
-    if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
-        return startNoWallet(ctx);
-    }
-    const _walletIndex = ctx.session.walletIndex ?? 0;
-    const _wallet = ctx.session.wallet[_walletIndex];
-    const address = _wallet.address;
-    // const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
     const _chain = chains[chainId];
+    
+    if (!ctx.session.account) {
+        return startNoWallet(ctx);
+    } else if (chainId !== 137 && chainId !== 42161) {
+        return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
+    }
+    const address = ctx.session.account.address;
+    // const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
 
     await ctx.reply('⏰ Loading Past Staking Details ...');
     const stakedDetails: STAKEV3_PAST_DETAIL_ITEM[] = await getPastStakingDetails (chainId, address);
@@ -337,16 +344,3 @@ export const leaderBoard = async (ctx: any) => {
         )
     }
 }
-
-
-//switch chain
-export const switchChain = async (ctx: any) => {
-    const chainId = ctx.session.chainId ?? 137;
-    if (chainId === 137 || !chainId) {
-        ctx.session.chainId = 42161;
-    } else {
-        ctx.session.chainId = 137;
-    }
-    menu(ctx);
-}
-

@@ -1,21 +1,17 @@
-import { Context } from "telegraf";
 import { Markup } from "telegraf";
 //////// staking ////////////////////////////////////////////////
 import {
     menu as menu_staking,
 } from './staking';
 import {
-    switchChain as swithChain_staking,
 } from './main.controller';
 import {
     menu as menu_staking_v3,
     stakingV3_ongoing_staking_details,
-    switchChain as switchChain_staking_v3,
     staingV3_past_staking_details
 } from "./staking/v3/main.controller";
 import {
     menu as menu_staking_lp,
-    switchChain as switchChain_staking_lp
 } from "./staking/lp/main.controller";
 import {
     menu as menu_staking_v1
@@ -26,37 +22,42 @@ import {
 
 ///////// launchpad  ////////////////////////////////////////////
 import {
+    handleBack,
+    handleNext,
+    handlePagination,
     menu as menu_launchpad
 } from './launchpad';
 import {
+    detail as detail_launchpad_upcoming,
     menu as menu_launchpad_upcoming
 } from './launchpad/upcoming.controller';
 import {
-    menu as menu_launchpad_ended
-} from './launchpad/ended.controller';
-import {
-    menu as menu_launchpad_active
+    menu as menu_launchpad_active,
+    detail as detail_launchpad_active
 } from './launchpad/active.controller';
 import {
-    menu as menu_launchpad_vesting
+    menu as menu_launchpad_ended,
+    detail as detail_launchpad_ended
+} from './launchpad/ended.controller';
+import {
+    menu as menu_launchpad_vesting,
+    detail as detail_launchpad_vesting
 } from './launchpad/vesting.controller';
 
 
 import { KOM_TOKEN_IMAGE, KOM_WELCOME_IMAGE } from "@/constants/pictures";
 import { chart, leaderBoard } from "./staking/v3/main.controller";
 import { acceptStakershipScene } from "./staking/v3/acceptStakership.controller";
-import { connectWallet, showWallets } from "./wallet/wallet.controller";
 import { chains } from "@/constants/config";
-import { pay } from "telegraf/typings/button";
-
 
 /**
  * show wallet select option at start
  * @param ctx 
  * @param noWallet 
  */
-export const startNoWallet = async (ctx: Context) => {
-    const msg = `⚠ You have no wallet!\n\nDo you have an existing wallet or create new one?`;
+export const startNoWallet = async (ctx: any) => {
+    const chainId = ctx.session.chainId ?? 137;
+    const msg = `⚠ No connected wallet!\n\nPlease connect wallet first... 👇`;
     // Create a buttons for creating and exporting wallets
     // Send message with the import wallet button
     await ctx.replyWithVideo(
@@ -66,8 +67,8 @@ export const startNoWallet = async (ctx: Context) => {
             parse_mode: "HTML",
             reply_markup: {
                 keyboard: [
-                    [Markup.button.webApp("Create New Wallet", `${process.env.MINIAPP_URL}/wallet/create`)],
-                    [Markup.button.webApp("Import Existing Wallet", `${process.env.MINIAPP_URL}/wallet/import`)],
+                    [Markup.button.webApp("Connect Wallet 🧰", `${process.env.MINIAPP_URL}?chainId=${chainId}&forWalletConnection=true`)],
+                    [{ text: 'Menu 🎨' }],
                 ],
                 resize_keyboard: true,
             }
@@ -79,13 +80,16 @@ export const startNoWallet = async (ctx: Context) => {
  * @param ctx 
  * @param noWallet 
  */
-export const welcome = async (ctx: Context) => {
+export const welcome = async (ctx: any) => {
+    const chainId = ctx.session.chainId ?? 137;
+    const account = ctx.session.account;
     const welcome =
         `🎉 Hey There, <b>${ctx.from.username}!</b>\n` +
         `I'm <a><u>@Kommunitas</u></a> TG Bot.\n` +
         `Basically, I will be your bot to access some (hopefully all) features in <a href='https://www.kommunitas.net/'>Kommunitas Website</a>.\n` +
         `🏆 You can create a new wallet OR import your existing wallet if you have interacted with Kommunitas before.\n\n` +
-        `<i>Please note that if you delete the chat with me, you will need to start all over again with the wallet connection or creation.</i>`;
+        `<i>Please note that if you delete the chat with me, you will need to connect with mini app for wallet connect.</i>` +
+        (!account ? `<i>\n\n⚠ No connected wallet, Please connect wallet... 👇</i>` : '');
 
     // Send message with the import wallet button
     await ctx.replyWithVideo(
@@ -94,11 +98,17 @@ export const welcome = async (ctx: Context) => {
             caption: welcome,
             parse_mode: "HTML",
             reply_markup: {
-                keyboard: [
-                    [Markup.button.webApp("Create New Wallet", `${process.env.MINIAPP_URL}/wallet/create`)],
-                    [Markup.button.webApp("Import Existing Wallet", `${process.env.MINIAPP_URL}/wallet/import`)],
-                    // [{ text: '👈 Back To Main Menu' }],
-                ],
+                keyboard: !account ?
+                    [
+                        [Markup.button.webApp("Connect Wallet 🧰", `${process.env.MINIAPP_URL}?chainId=${chainId}&forWalletConnection=true`)],
+                        [{ text: 'Menu 🎨' }],
+                    ] :
+                    [
+                        [Markup.button.webApp("Add New Account ✨", `${process.env.MINIAPP_URL}/account/add?chainId=${chainId}&forWallet=true`), Markup.button.webApp("Import Existing Account 🎲", `${process.env.MINIAPP_URL}/account/import?chainId=${chainId}&forWallet=true`)],
+                        [Markup.button.webApp("Switch Account 🧾", `${process.env.MINIAPP_URL}?chainId=${chainId}&forAccountSelection=true`), Markup.button.webApp('Switch Chain 🔗', `${process.env.MINIAPP_URL}?chainId=${chainId}&forChainSelection=true`)],
+                        [],
+                        [{ text: 'Menu 🎨' }],
+                    ],
                 resize_keyboard: true,
             }
         }
@@ -124,28 +134,13 @@ export const menu = async (ctx: any) => {
             parse_mode: "HTML",
             reply_markup: {
                 keyboard: [
-                    [Markup.button.webApp("Wallet 🧰", `${process.env.MINIAPP_URL}?chainId=${chainId}&account=true&chain=true`), { text: 'Staking ⏱' }],
+                    [Markup.button.webApp("Wallet 🧰", `${process.env.MINIAPP_URL}?chainId=${chainId}&forWallet=true`), { text: 'Staking ⏱' }],
                     [{ text: 'LaunchPad 🚀' }, { text: 'Bridge 🖇' }],
                     [{ text: 'Buy KOM ⭐' }, { text: 'Earn 💎' }],
                 ],
                 resize_keyboard: true,
-                // one_time_keyboard: true,
             },
         });
-}
-
-/**
- * switch chain in main menu
- * @param ctx 
- */
-export const switchChain = async (ctx: any) => {
-    const chainId = ctx.session.chainId ?? 137;
-    if (chainId === 137 || !chainId) {
-        ctx.session.chainId = 42161;
-    } else {
-        ctx.session.chainId = 137;
-    }
-    menu_staking(ctx);
 }
 
 export const textHandler = async (ctx: any) => {
@@ -154,21 +149,20 @@ export const textHandler = async (ctx: any) => {
         selectedOption
     })
 
+    if (!isNaN(Number(selectedOption))) {
+        return handlePagination(ctx, Number(selectedOption));
+    }
+
     switch (selectedOption) {
         case "Staking ⏱":
             return menu_staking(ctx);
         // ---------------------------------------------------------------- staking --------------------------------------------------------------------------------
-        case "Wallet 🧰":
-            return showWallets (ctx);
-        // return console.log(ctx)
+        case "Menu 🎨":
+            return menu(ctx);
         case "Refresh ❄":
             await ctx.scene.leave();
             return menu_staking(ctx);
-        case 'Switch to Arbitrum 💫':
-            return swithChain_staking(ctx);
-        case 'Switch to Polygon 💫':
-            return swithChain_staking(ctx);
-        case 'Staking LP 💦':
+        case 'Staking LP ⭐':
             return menu_staking_lp(ctx);
         case "Staking V1":
             return menu_staking_v1(ctx);
@@ -181,10 +175,6 @@ export const textHandler = async (ctx: any) => {
         // --------------------------------------------------------------- staking v3 --------------------------------------------------------------------------------
         case "Refresh 🎲":
             return menu_staking_v3(ctx);
-        case "Switch to Arbitrum 🎨":
-            return switchChain_staking_v3(ctx);
-        case "Switch to Polygon 🎨":
-            return switchChain_staking_v3(ctx);
         case "Staking Chart / Percentage 📈":
             return chart(ctx);
         case "Staking V3 Leaderboard 🏆":
@@ -206,28 +196,40 @@ export const textHandler = async (ctx: any) => {
             return menu_staking_lp(ctx);
         case "Stake 🎨":
             return ctx.scene.enter("stakingLPScene");
-        case "Switch to Arbitrum 💦":
-            return switchChain_staking_lp(ctx);
-        case "Switch to Polygon 💦":
-            return switchChain_staking_lp(ctx);
         // -----------------------------------------------------------------  staking v1 and v2 -------------------------------------------------------
         case "Claim 👏":
             return ctx.scene.enter("claimWithV1Scene");
         case "Claim 🎬":
             return ctx.scene.enter("claimWithV2Scene");
-
         // ----------------------------------------------------------------- launchpad ----------------------------------------------------------------
-        case "LaunchPad ⚙":
+        case "LaunchPad 🚀":
             return menu_launchpad(ctx);
         case "Upcoming 💤":
+            ctx.session.page = 1;
             return menu_launchpad_upcoming(ctx);
-        case "Active 🟢":
+        case "Active ⚡":
+            ctx.session.page = 1;
             return menu_launchpad_active(ctx);
-        case "Ended ⏱'":
+        case "Ended ⏱":
+            ctx.session.page = 1;
             return menu_launchpad_ended(ctx);
         case "Vesting 💎":
+            ctx.session.page = 1;
             return menu_launchpad_vesting(ctx);
-
+        case "next 👉":
+            return handleNext(ctx);
+        case "👈 back":
+            return handleBack(ctx);
+        case "👈 Back to Upcoming":
+            return menu_launchpad_upcoming(ctx);
+        case "👈 Back to Active":
+            return menu_launchpad_active(ctx);
+        case "👈 Back to Ended":
+            return menu_launchpad_ended(ctx);
+        case "👈 Back to Vesting":
+            return menu_launchpad_vesting(ctx);
+        case "👈 Back to Launchpad":
+            return menu_launchpad(ctx);
         default:
             break;
     }
@@ -237,120 +239,101 @@ export const textHandler = async (ctx: any) => {
     }
 }
 
+// handle message from mini app
 export const messageHandler = async (ctx: any) => {
-    const webAppData = ctx.message.web_app_data;
-    if (!webAppData) return;
-    
-    const { button_text } = webAppData;
-    const { type, payload } = JSON.parse(webAppData.data);
+    try {
+        const webAppData = ctx.message.web_app_data;
+        if (!webAppData) return;
 
-   console.log("from web app-----------", type, payload);
+        const { button_text } = webAppData;
+        const { type, payload } = JSON.parse(webAppData.data);
+        console.log("from web app-----------", type, payload);
 
-    switch (type) {
-        case "NEW_ACCOUNT_ADDED":
-            ctx.session.account = payload.account;
-            ctx.reply(`😁 New Account <b><i><code>${payload.address.address}</code></i></b> <i>(${payload.address.name})</i> has been added.`, { parse_mode: "HTML" });
-            return menu(ctx);
-        case "NEW_ACCOUNT_IMPORTED":
-            ctx.session.account = payload.account;
-            ctx.reply(`😁 New Account <b><i><code>${payload.address.address}</code></i></b> <i>(${payload.address.name})</i> has been imported.`, { parse_mode: "HTML" });
-            return menu(ctx);
-        case "NEW_WALLET_CREATED":
-            ctx.session.account = payload;
-            ctx.reply(`😁 New Wallet <b><i><code>${payload.address}</code></i></b> <i>(${payload.name})</i> has been created.`, { parse_mode: "HTML" });
-            return menu(ctx);
-        case "NEW_WALLET_IMPORTED":
-            ctx.session.account = payload;
-            ctx.reply(`😁 New Wallet <b><i><code>${payload.address}</code></i></b> <i>(${payload.name})</i> has been imported.`, { parse_mode: "HTML" });
-            return menu(ctx);
-        case "CHAIN_SWITCHED":
-            ctx.session.chainId = payload.chainId;
-            await ctx.reply(`🎬 Switched to ${chains[ctx.session.chainId].name} chain`);
-            if (button_text.includes('💫')) {
-                return menu_staking (ctx);
-            }  else if (button_text.includes('🎨')) {
-                return menu_staking_v3 (ctx);
-            } 
-            return menu (ctx);
-        case "ACCOUNT_CHANGED":
-            await ctx.reply(`🎬 Switched to account <b><i><code>${payload.address}</code></i></b> <i>(${payload.name})</i>`, { parse_mode: "HTML" })
-            ctx.session.account = payload;
-            return menu (ctx);
-
-
-
-        case 'Switch to Arbitrum 💫':
-            return swithChain_staking(ctx);
-        case 'Switch to Polygon 💫':
-            return swithChain_staking(ctx);
-        case 'Staking LP 💦':
-            return menu_staking_lp(ctx);
-        case "Staking V1":
-            return menu_staking_v1(ctx);
-        case "Staking V2":
-            return menu_staking_v2(ctx);
-        case 'Staking V3 ⏰':
-            return menu_staking_v3(ctx);
-        case '👈 Back To Main Menu':
-            return menu(ctx);
-        // --------------------------------------------------------------- staking v3 --------------------------------------------------------------------------------
-        case "Refresh 🎲":
-            return menu_staking_v3(ctx);
-        case "Switch to Arbitrum 🎨":
-            return switchChain_staking_v3(ctx);
-        case "Switch to Polygon 🎨":
-            return switchChain_staking_v3(ctx);
-        case "Staking Chart / Percentage 📈":
-            return chart(ctx);
-        case "Staking V3 Leaderboard 🏆":
-            return leaderBoard(ctx);
-        case "Stake ⏱":
-            return ctx.scene.enter("stakingV3Scene");
-        case "👈 BACK":
-            return menu(ctx);
-        case "Transfer Stakership 🚀":
-            return ctx.scene.enter("transferStakershipScene");
-        case "My Ongoing Staking Details 🏅":
-            return stakingV3_ongoing_staking_details(ctx);
-        case "My Past Staking Details 🥇":
-            return staingV3_past_staking_details(ctx);
-        case "👈 Back To Staking Menu":
-            return menu_staking(ctx);
-        // ---------------------------------------------------------------- staking lp -----------------------------------------------------------------
-        case "Refresh 💫":
-            return menu_staking_lp(ctx);
-        case "Stake 🎨":
-            return ctx.scene.enter("stakingLPScene");
-        case "Switch to Arbitrum 💦":
-            return switchChain_staking_lp(ctx);
-        case "Switch to Polygon 💦":
-            return switchChain_staking_lp(ctx);
-        // -----------------------------------------------------------------  staking v1 and v2 -------------------------------------------------------
-        case "Claim 👏":
-            return ctx.scene.enter("claimWithV1Scene");
-        case "Claim 🎬":
-            return ctx.scene.enter("claimWithV2Scene");
-
-        // ----------------------------------------------------------------- launchpad ----------------------------------------------------------------
-        case "LaunchPad ⚙":
-            return menu_launchpad(ctx);
-        case "Upcoming 💤":
-            return menu_launchpad_upcoming(ctx);
-        case "Active 🟢":
-            return menu_launchpad_active(ctx);
-        case "Ended ⏱'":
-            return menu_launchpad_ended(ctx);
-        case "Vesting 💎":
-            return menu_launchpad_vesting(ctx);
-
-        default:
-            break;
+        switch (type) {
+            case "NEW_ACCOUNT_ADDED":
+                ctx.session.account = payload.account;
+                ctx.reply(`😁 New Account <b><i><code>${payload.address.address}</code></i></b> <i>(${payload.address.name})</i> has been added.`, { parse_mode: "HTML" });
+                return menu(ctx);
+            case "NEW_ACCOUNT_IMPORTED":
+                ctx.session.account = payload.account;
+                ctx.reply(`😁 New Account <b><i><code>${payload.address.address}</code></i></b> <i>(${payload.address.name})</i> has been imported.`, { parse_mode: "HTML" });
+                return menu(ctx);
+            case "NEW_WALLET_CREATED":
+                ctx.session.account = payload;
+                ctx.reply(`😁 New Wallet <b><i><code>${payload.address}</code></i></b> <i>(${payload.name})</i> has been created.`, { parse_mode: "HTML" });
+                return menu(ctx);
+            case "NEW_WALLET_IMPORTED":
+                ctx.session.account = payload;
+                ctx.reply(`😁 New Wallet <b><i><code>${payload.address}</code></i></b> <i>(${payload.name})</i> has been imported.`, { parse_mode: "HTML" });
+                return menu(ctx);
+            case "CHAIN_SWITCHED":
+                ctx.session.chainId = payload.chainId;
+                await ctx.reply(`🎬 Switched to ${chains[ctx.session.chainId].name} chain`);
+                if (button_text.includes('🔗')) {
+                    const _page = ctx.session.currentPage;
+                    if (_page && _page.includes('activeProject')) {
+                        const name = _page.split("_")[1];
+                        return detail_launchpad_active(ctx, name);
+                    } else {
+                        return menu_launchpad_active(ctx);
+                    }
+                } else if (button_text.includes('💫')) {
+                    return menu_staking(ctx);
+                } else if (button_text.includes('🎨')) {
+                    return menu_staking_v3(ctx);
+                } else if (button_text.includes('💦')) {
+                    return menu_staking_lp(ctx);
+                }
+                return menu(ctx);
+            case "ACCOUNT_CHANGED":
+                await ctx.reply(`🎬 Connected to account <b><i><code>${payload.address}</code></i></b> <i>(${payload.name})</i>`, { parse_mode: "HTML" })
+                ctx.session.account = payload;
+                return menu(ctx);
+            case "CANCEL_TRANSACTION":
+                await ctx.reply(`🙄 ${payload.message}`, { parse_mode: "HTML" });
+                await ctx.scene.leave();
+                if (payload.type === 'stakingv1') {
+                    return menu_staking_v1(ctx);
+                } else if (payload.type === 'stakingv2') {
+                    return menu_staking_v2(ctx);
+                } else if (payload.type === 'stakingv3') {
+                    return menu_staking_v3(ctx);
+                } else if (payload.type === 'stakingLP') {
+                    return menu_staking_lp(ctx);
+                } else if (payload.type === 'launchpad_active_buy') {
+                    // return detail_launchpad_active (ctx, payload.id);
+                    return;
+                } else if (payload.type === 'vesting') {
+                    // return detail_launchpad_vesting (ctx, payload.id);
+                    return;
+                }
+            case "SUCCESS_TRANSACTION":
+                await ctx.reply(`🎉 ${payload.message}`, { parse_mode: "HTML" });
+                await ctx.scene.leave();
+                if (payload.type === 'stakingv1') {
+                    return menu_staking_v1(ctx);
+                } else if (payload.type === 'stakingv2') {
+                    return menu_staking_v2(ctx);
+                } else if (payload.type === 'stakingv3') {
+                    return menu_staking_v3(ctx);
+                } else if (payload.type === 'stakingLP') {
+                    return menu_staking_lp(ctx);
+                } else if (payload.type === 'launchpad_upcoming_vote') {
+                    return detail_launchpad_upcoming(ctx, payload.id);
+                } else if (payload.type === 'launchpad_active_buy') {
+                    return detail_launchpad_active(ctx, payload.id);
+                } else if (payload.type === 'vesting') {
+                    return detail_launchpad_vesting (ctx, payload.id);
+                }
+        }
+    } catch (err) {
+        console.log("err in msg handler --------", err);
     }
 }
 
 export const callbackQuery = async (ctx: any) => {
     const selectedOption = ctx.callbackQuery.data;
-
+    console.log({ callbackQuery: selectedOption });
     if (selectedOption.includes('v3_withdraw_')) { // click withdraw button
         const [version, name, index] = selectedOption.split("_");
         ctx.answerCbQuery(`You are going to withdraw with version ${version} on index ${index}`);
@@ -359,11 +342,29 @@ export const callbackQuery = async (ctx: any) => {
         const [version, name, index] = selectedOption.split("_");
         ctx.answerCbQuery(`You are going to change compound mode with version ${version} on index ${index}`);
         ctx.scene.enter("changeCompoundModeScene", { state: { version, index } });
-    } else if (selectedOption.includes('connect_wallet_')) {
-        const [, , index] = selectedOption.split("_");
-        connectWallet(ctx, index);
-    } else if (selectedOption.includes('delete_wallet_')) {
-        const [, , index] = selectedOption.split("_");
-        return ctx.scene.enter("deleteWalletScene", { index });
+    } else if (selectedOption.includes('voteToParticipate')) {
+        const name = selectedOption.split('_')[1];
+        return detail_launchpad_upcoming(ctx, name);
+    } else if (selectedOption.includes('gotoActiveProject')) {
+        const name = selectedOption.split("_")[1];
+        return detail_launchpad_active(ctx, name);
+    } else if (selectedOption.includes('refreshActive')) {
+        const name = selectedOption.split("_")[1];
+        return detail_launchpad_active(ctx, name);
+    } else if (selectedOption.includes('gotoEndedProject')) {
+        const name = selectedOption.split("_")[1];
+        return detail_launchpad_ended(ctx, name);
+    } else if (selectedOption.includes('refreshEnded')) {
+        const name = selectedOption.split("_")[1];
+        return detail_launchpad_ended(ctx, name);
+    } else if (selectedOption.includes('gotoVestingProject')) {
+        const name = selectedOption.split("_")[1];
+        return detail_launchpad_vesting(ctx, name);
+    } else if (selectedOption.includes('refreshVesting')) {
+        const name = selectedOption.split("_")[1];
+        return detail_launchpad_vesting(ctx, name);
+    } else if (selectedOption.includes('gotoVestingPortal')) {
+        const name = selectedOption.split("_")[1];
+        return detail_launchpad_vesting(ctx, name);
     }
 }

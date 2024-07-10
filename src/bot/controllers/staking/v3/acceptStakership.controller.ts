@@ -1,16 +1,15 @@
-import { createCallBackBtn, getStakershipDetails } from "@/bot/utils";
-import { decrypt } from "@/bot/utils";
-import { accpetStakership } from "@/bot/utils/staking";
-import { startNoWallet } from "@/bot/controllers/main.controller";
-import { menu } from "..";
+import { menu } from "@/bot/controllers/staking/v3/main.controller";
+import { Markup } from "telegraf";
 
 // when enter stakingV3Scene
 export const enterScene = async (ctx: any) => {
-    ctx.reply('\n🗨  Please enter your password to send AcceptStakership transaction', {
-        parse_mode: 'HTML',
+    const chainId = ctx.session.chainId ?? 137;
+    ctx.reply('\n🗨  Please enter your password to send AcceptStakership transaction.\n\n✔ Do you want to execute this transaction ...👇.', {
+        parse_mode: "HTML",
         reply_markup: {
             force_reply: true,
             keyboard: [
+                [Markup.button.webApp("✔ O K", `${process.env.MINIAPP_URL}/transactions/staking/v3/stakership/accept?chainId=${chainId}`)],
                 [{ text: '👈 BACK' }],
             ],
             one_time_keyboard: true,
@@ -21,55 +20,9 @@ export const enterScene = async (ctx: any) => {
 
 // input password for accept staker ship
 export const textHandler = async (ctx: any) => {
-    
     if (ctx.message.text === '👈 BACK') {
-        await ctx.scene.leave ();
-        return menu (ctx);
-    }
-
-    await ctx.reply("⏰ Loading ...");
-
-    const password = ctx.message.text;
-    await ctx.deleteMessage(ctx.message.message_id).catch((err: any) => { });
-    
-    if (!ctx.session.wallet || !Array.isArray(ctx.session.wallet)) {
         await ctx.scene.leave();
-        startNoWallet(ctx);
-        return;
-    }
-    const _walletIndex = ctx.session.walletIndex ?? 0;
-    const _wallet = ctx.session.wallet[_walletIndex];
-    const _address = _wallet.address;
-    const { originStakership } = await getStakershipDetails(137, _address);
-
-    if (originStakership === '0x0000000000000000000000000000000000000000') {
-        await ctx.reply(
-            "😔 No pending stakership for your wallet address.",
-        );
-        ctx.scene.leave();
-        return;
-    }
-
-    try {
-        const _privateKey = decrypt(_wallet.privateKey, password);
-        if (!_privateKey) throw "no key";
-        await accpetStakership(ctx, _privateKey, originStakership);
-        ctx.scene.leave();
-    } catch (err) {
-        ctx.reply(
-            "😔 Wrong password. Please re-enter password.",
-            {
-                parse_mode: 'HTML',
-                reply_markup: {
-                    force_reply: true,
-                    keyboard: [
-                        [{ text: '👈 BACK' }],
-                    ],
-                    one_time_keyboard: true,
-                    resize_keyboard: true,
-                }
-            }
-        );
+        return menu(ctx);
     }
 }
 

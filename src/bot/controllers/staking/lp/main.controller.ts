@@ -1,14 +1,17 @@
 import { STAKING_LP_BANNER_IMAGE } from "@/constants/pictures";
 import { getLPBalance, getLPStakingDetails } from "@/bot/utils";
 import { startNoWallet } from "@/bot/controllers/main.controller";
+import { Markup } from "telegraf";
 
 // show staking LP menus
 export const menu = async (ctx: any) => {
     const chainId = ctx.session.chainId ?? 137;
     if (!ctx.session.account) {
         return startNoWallet(ctx);
+    } else if (chainId !== 137 && chainId !== 42161) {
+        return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
     }
-    const address = ctx.session.address;
+    const address = ctx.session.account.address;
     // const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
     await ctx.reply('⏰ Loading staking LP details from networks ...');
     // get token balances
@@ -18,7 +21,7 @@ export const menu = async (ctx: any) => {
     ] = await Promise.all([getLPBalance (address), getLPStakingDetails(address)]);
 
     let msg =
-        `💦 KomBot | <a href="https://staking.kommunitas.net/"><u>Website</u></a> | <a href='https://youtu.be/CkdGN54ThQI?si=1RZ0T531IeMGfgaQ'><u>Tutorials</u></a> 💦\n\n` +
+        `KomBot | <a href="https://staking.kommunitas.net/">Staking</a> | <a href='https://www.youtube.com/watch?v=9jP5AxDiEP0'>Tutorials</a>\n\n` +
         `🏆 LP Token Address: <b><i><code>0xe0a1fd98e9d151babce27fa169ae5d0ff180f1a4</code></i></b>  <i>(Tap to Copy)</i>` + 
         `\n\n<b>💎 LP at Wallet :</b>  <b>${_balance}</b> <i><a href='https://polygonscan.com/address/0xe0a1fd98e9d151babce27fa169ae5d0ff180f1a4'>UNI-V2 (WMATIC - KOM)</a></i>` +
         `\n\n<a href='https://quickswap.exchange/#/pools/v2?currency0=ETH&currency1=0xC004e2318722EA2b15499D6375905d75Ee5390B8'><b><u>** Click To get LP Token **</u></b></a>` +
@@ -40,7 +43,7 @@ export const menu = async (ctx: any) => {
                 keyboard: [
                     [ { text: 'Refresh 💫' } ], 
                     chainId !== 137 ?
-                    [ { text: 'Stake 🎨' }, { text: 'Switch to Polygon 💦' } ]: 
+                    [ { text: 'Stake 🎨' }, Markup.button.webApp('Switch to Polygon 💦', `${process.env.MINIAPP_URL}?chainId=${chainId}&forChainSelection=true`) ]: 
                     [ { text: 'Stake 🎨' } ],
                     [ { text: '👈 Back To Staking Menu' } ],
                 ],
@@ -53,14 +56,4 @@ export const menu = async (ctx: any) => {
     );
 }
 
-//switch chain
-export const switchChain = async (ctx: any) => {
-    const chainId = ctx.session.chainId ?? 137;
-    if (chainId === 137 || !chainId) {
-        ctx.session.chainId = 42161;
-    } else {
-        ctx.session.chainId = 137;
-    }
-    menu(ctx);
-}
 
