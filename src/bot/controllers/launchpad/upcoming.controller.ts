@@ -6,18 +6,9 @@ import { keyboard } from "telegraf/typings/markup";
 import { startNoWallet } from "../main.controller";
 import { CAMPAIGN_SOCIAL_NAMES } from "@/constants/utils";
 import { Markup } from "telegraf";
-import { PLACE_HOLDER } from "@/constants/pictures";
+import { LAUNCHPAD_MAIN_LOGO, PLACE_HOLDER } from "@/constants/pictures";
 
 
-// show staking menus
-// export const menu = async (ctx: any) => {
-//     ctx.session.currentLaunchpadType = 'upcoming';
-
-//     const PAGE_LEN = 10;
-//     const total = 145;
-//     let page = ctx.session.page ?? 1;
-//     const { count, buttons } = getPaginationButtons (total, PAGE_LEN, page);
-// }
 export const menu = async (ctx: any) => {
     try {
 
@@ -33,75 +24,65 @@ export const menu = async (ctx: any) => {
         //     address: '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3',
         //     name: 'test'
         // };
+
         // page settings
         await ctx.reply("⏱ Loading Upcoming Projects...");
         const projects = await getProjects('upcoming', address);
-        const page = ctx.session.page ?? 1;
+        const _page = ctx.session.page ?? 1;
         const total = projects.length;
         const PAGE_LEN = 10;
-        const { count, buttons } = getPaginationButtons(total, PAGE_LEN, page);
+        const { count, buttons, page } = getPaginationButtons(total, PAGE_LEN, _page);
 
         await ctx.reply(
             '⏰ Loading Projects Details...',
             {
-                reply_markup: { keyboard: [buttons, [{ text: '👈 Back to Launchpad' }]], resize_keyboard: true },
+                reply_markup: { keyboard: [[{ text: '👈 Back to Launchpad' }]], resize_keyboard: true },
             }
         );
 
-        const _projects = await Promise.all(projects.slice((page - 1) * PAGE_LEN, page * PAGE_LEN));
-        for (let i = 0; i < _projects.length; i++) {
-            const _project: IProject = _projects[i];
-            // project types
-            let _type = '';
-            if (_project.secure) {
-                _type = ' 🔐Secure';
-            } else if (_project.priority) {
-                _type = ' ⭐Priority';
-            } else if (_project.exclusive) {
-                _type = ' 💎Exclusive'
-            } else if (_project.nonRefundable) {
-                _type = ' 💤Non refundable';
+        const _projects = projects.slice((page - 1) * PAGE_LEN, page * PAGE_LEN);
+        // Send message with the import wallet button
+        let msg =
+        `KomBot | <a href="https://launchpad.kommunitas.net/">Launchpad</a>\n\n` +
+        `Kommunitas is a decentralized crowdfunding ecosystem specifically designed for Web 3.0 projects. \nWhile some might refer it as a "launchpad" or "IDO platform", Kommunitas strives to build something far greater—an expansive ecosystem that fosters innovation and collaboration. \nJoin us on this transformative journey as we redefine the possibilities of Polygon crypto launchpad. \nIf you encounter any difficulties, please visit this <b><i><u><a href='https://www.youtube.com/watch?v=iPE_J--gOdY'>YouTube tutorial</a></u></i></b> for step-by-step guidance.` +
+        `\n\n🏆 <b><i>Upcoming Projects (page: ${page}/${count})</i></b>`;
+
+        const _projectButtons = [];
+        for (let index = 0; index < _projects.length; index+=2) {
+            const _project0 = _projects[index];
+            const _project1 = _projects[index + 1];
+            if (_project1) {
+                _projectButtons.push([
+                    { text: `${(page - 1) * PAGE_LEN + index + 1}. ${_project0.name} ➡`, callback_data: `voteToParticipate_project=IKO-${_project0.ticker}-${_project0.round}` },
+                    { text: `${(page - 1) * PAGE_LEN + index + 2}. ${_project1.name} ➡`, callback_data: `voteToParticipate_project=IKO-${_project1.ticker}-${_project1.round}` },
+                ])
+            } else {
+                _projectButtons.push([
+                    { text: `${(page - 1) * PAGE_LEN + index + 1}. ${_project0.name} ➡`, callback_data: `voteToParticipate_project=IKO-${_project0.ticker}-${_project0.round}` },
+                ])
             }
-            // social links
-            const socials = _project.social ? _project.social.map((item: { icon: string, link: string }) => ` <a href='${item.link}'>${CAMPAIGN_SOCIAL_NAMES[item.icon] ?? item.icon}</a>`).join(' | ') : '';
-            // compaigns
-            const promos = Object.entries(_project.promo).filter(([key, value]) => key !== 'research' && key !== 'banner').map(([key, value]) => ` <a href='${value}'>${CAMPAIGN_SOCIAL_NAMES[key] ?? key}</a>`).join(' | ');
-            // message
-            let msg =
-                `${(page - 1) * PAGE_LEN + i + 1}. 💎 ${_project.name} <b><i> ($${_project.ticker})</i></b>    <b><i><u>${_project.type.label}</u></i></b>\n\n` +
-                `- Round: <b><i>${_project.roundLabel}</i></b>\n` +
-                (_type ? `- Rules: <b><i>${_type}</i></b>\n\n`: '\n') +
-                promos + (promos.length > 0 ? '\n\n' : '') +
-                `<i>${_project.desc.substring(0, 200)} ...</i>\n\n` +
-                socials +
-                `\n\n🎓 <b><a href='${_project?.promo?.research}'>Research</a></b>\n\n` +
-                `- <i>Total Supply</i>: <b>${_project.supply}</b>\n` +
-                `- <i>Initial Marketcap</i>: <b>${_project.marketcap}</b>\n` +
-                `- <i>Swap Rate</i>: <b>${_project.price}</b>\n` +
-                `- <i>Starts</i>: <b>${_project.calculation_time}</b>\n` +
-                `- <i>Target Raised</i>: <b>$${formatNumber(_project.target.total)}</b>\n\n` +
-                `<i>${_project.distribution}</i>` +
-                (_project.calculation_time !== "TBA" && !_project.voting ? `\n\nVoting ends in: ${calcRemainingTime(Date.now(), _project.start * 1000)}` : '') +
-                (_project.voting ? `\n\n<b>Starting Soon</b> <i>(You have already been voted)</i>` : '') +
-                ``;
-            await ctx.replyWithPhoto(
-                _project.sale_card ? _project.sale_card : PLACE_HOLDER,
-                {
-                    caption: msg,
-                    parse_mode: "HTML",
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                { text: _project.voting || _project.round === 'PrivateCross' ? 'Go to Project Details 📄' : `Vote to Participate 👍`, callback_data: `voteToParticipate_project=IKO-${_project.ticker}-${_project.round}` },
-                            ]
-                        ],
-                    },
-                    link_preview_options: {
-                        is_disabled: true
-                    }
-                }
-            );
         }
+        ctx.replyWithPhoto(
+            LAUNCHPAD_MAIN_LOGO,
+            {
+                caption: msg,
+                parse_mode: "HTML",
+                reply_markup: {
+                    inline_keyboard: [
+                        ..._projectButtons,
+                        [
+                            { text: '👈 back', callback_data: '👈 back' },
+                            { text: 'next 👉', callback_data: 'next 👉' },
+                        ]
+                    ],
+                    resize_keyboard: true,
+                },
+                link_preview_options: {
+                    is_disabled: true
+                }
+            }
+        );
+        return;
     } catch (err) {
         console.log(err);
         ctx.reply("⚠ Failed to load...")

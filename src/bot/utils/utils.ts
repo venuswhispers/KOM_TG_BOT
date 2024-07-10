@@ -1,11 +1,9 @@
 import crypto from 'crypto-js';
 import axios from 'axios';
 import { chains } from '../../constants/config';
-import QuickChart from 'quickchart-js';
 import { CHART_DATA_ITEM } from "@/types";
-// const { createCanvas, loadImage } = require('canvas');
 import { createCanvas, loadImage } from 'canvas';
-import fs from 'fs';
+const QuickChart = require('quickchart-js');
 
 export const encrypt = (text: string, key?: string) => {
     return crypto.AES.encrypt(text, key ? key : process.env.BOT_TOKEN).toString();
@@ -321,7 +319,8 @@ export const getPaginationButtons = (total: number, pageNum: number, page: numbe
     }
     return {
         buttons: buttons.filter((item: any) => item !== undefined).map((item: { text: string }) => ( item.text === String(page) ? ({ text: `${item.text} 👇` }) : ({ ...item }))),
-        count
+        count,
+        page
     }
 }
 /**

@@ -145,9 +145,6 @@ export const menu = async (ctx: any) => {
 
 export const textHandler = async (ctx: any) => {
     const selectedOption = ctx.message.text;
-    console.log({
-        selectedOption
-    })
 
     if (!isNaN(Number(selectedOption))) {
         return handlePagination(ctx, Number(selectedOption));
@@ -334,7 +331,11 @@ export const messageHandler = async (ctx: any) => {
 export const callbackQuery = async (ctx: any) => {
     const selectedOption = ctx.callbackQuery.data;
     console.log({ callbackQuery: selectedOption });
-    if (selectedOption.includes('v3_withdraw_')) { // click withdraw button
+    if (selectedOption === 'next 👉') {
+        return handleNext(ctx);
+    } else if (selectedOption === 'next 👉') { 
+        return handleBack(ctx);
+    } else if (selectedOption.includes('v3_withdraw_')) { // click withdraw button
         const [version, name, index] = selectedOption.split("_");
         ctx.answerCbQuery(`You are going to withdraw with version ${version} on index ${index}`);
         ctx.scene.enter("withdrawV3Scene", { withdraw: { version, index } });

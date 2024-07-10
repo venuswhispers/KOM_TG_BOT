@@ -417,28 +417,6 @@ export const getRoundDetail = async (_index: number, _decimal: number, address: 
         }
     }
 }
-// /**
-//  * calculate total amount of tokens across all chains
-//  * @param _user 
-//  * @param _chains 
-//  * @param _deciaml 
-//  * @returns 
-//  */
-// export const getUserTotalPurchase = async (_user: string, _chains: CROSS_CHAIN, _deciaml: number) => {
-//     const _amounts: number[] = await Promise.all(Object.entries(_chains).map(async ([_chainId, _address]) => {
-//         try {
-//             const _chain = chains[_chainId];
-//             const provider = new ethers.providers.JsonRpcProvider(_chain.rpc);
-//             const _contract = new ethers.Contract(_address, PublicGovSaleABI, provider);
-//             const _amount = await _contract.totalChainUserPurchased(_user);
-//             return Number(ethers.utils.formatUnits(_amount, _deciaml));
-//         } catch (err) {
-//             console.log(err)
-//             return 0;
-//         }
-//     }));
-//     return _amounts.reduce((_acc: number, _amount: number) => _acc + _amount, 0);
-// }
 
 /**
  * calculate users total purchased amount

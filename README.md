@@ -5,11 +5,8 @@
 First, create .env and build following settings..
 
 ```bash
-# mongoURI=
-# MORALIS_API_KEY=
-# NEXT_URL=http://localhost:3000/
-# AUTH_SECRET=
-# APP_DOMAIN=
+# MINI_APP_URL=http://localhost:3000/
+# BOT_TOKEN=
 ```
 
 Second, run the development server:

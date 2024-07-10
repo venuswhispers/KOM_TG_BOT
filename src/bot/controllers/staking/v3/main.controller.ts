@@ -32,8 +32,6 @@ export const menu = async (ctx: any) => {
     }
     const address = ctx.session.account.address;
     console.log("stakingv3 menu====>", {address});
-    // const address = '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3';
-    // const address = '0xeB5768D449a24d0cEb71A8149910C1E02F12e320';
     // get token balances
     await ctx.reply('⏰ Loading staking v3 details from networks ...');
     const [

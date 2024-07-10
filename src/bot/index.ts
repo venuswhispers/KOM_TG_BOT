@@ -25,10 +25,6 @@ export default () => {
   _bot.use(session());
   // use tg scene's middlewares
   _bot.use(stages.middleware());
-
-  _bot.command("session", (ctx: any) => {
-    console.log(ctx.session)
-  });
   //set commands
   const commands = [
     { command: '/start', description: 'Start a dialogue with the bot' },

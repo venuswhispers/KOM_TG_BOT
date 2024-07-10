@@ -10,7 +10,7 @@
     "dev": "nodemon",
     "start": "ts-node-dev src/server.ts",
     "build": "tsc",
-    "server": "node -r tsconfig-paths/register -r ts-node/register dist/server.js",
+    "server": "node dist/server.js",
     "production": "set PORT=80&&set ENVIRONMENT=PRODUCTION&&ts-node src/server.ts"
   },
   "author": "dew1204",

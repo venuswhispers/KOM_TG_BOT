@@ -3,7 +3,7 @@ import { getProjects } from "@/bot/utils/launchpad";
 import { IProject, ROUND_DETAIL } from "@/types";
 import { startNoWallet } from "../main.controller";
 import { CAMPAIGN_SOCIAL_NAMES } from "@/constants/utils";
-import { PLACE_HOLDER } from "@/constants/pictures";
+import { LAUNCHPAD_MAIN_LOGO, PLACE_HOLDER } from "@/constants/pictures";
 import { utils } from "ethers";
 
 export const menu = async (ctx: any) => {
@@ -21,85 +21,143 @@ export const menu = async (ctx: any) => {
         //     name: 'test'
         // };
         await ctx.reply("⏱ Loading Ended Projects...");
-        // page settings
         const projects = await getProjects('ended', address);
-        const page = ctx.session.page ?? 1;
+        const _page = ctx.session.page ?? 1;
         const total = projects.length;
         const PAGE_LEN = 10;
-        const { count, buttons } = getPaginationButtons(total, PAGE_LEN, page);
+        const { count, buttons, page } = getPaginationButtons(total, PAGE_LEN, _page);
 
         await ctx.reply(
             '⏰ Loading Projects Details...',
             {
-                reply_markup: {
-                    keyboard: [buttons, [{ text: '👈 Back to Launchpad' }]], resize_keyboard: true
-                },
+                reply_markup: { keyboard: [[{ text: '👈 Back to Launchpad' }]], resize_keyboard: true },
             }
         );
         // slice for page and get progress details
         const _projects: IProject[] = await Promise.all(projects.slice((page - 1) * PAGE_LEN, page * PAGE_LEN).map(async (_item: IProject) => ({
             ..._item,
-            progress: _item.project ? await getProjectProgress(_item.project, _item.tokenDecimal) : {
-                price: 1,
-                sale: Number(utils.formatUnits(_item.sale, _item.tokenDecimal)),
-                sold: Number(utils.formatUnits(_item.sold, _item.tokenDecimal)),
-            }
+            // progress: await getProjectProgress(_item.project, _item.tokenDecimal)
         })));
-        // show list of active projects
-        for (let i = 0; i < _projects.length; i++) {
-            const _project: IProject = _projects[i];
-            // project types
-            let _type = '';
-            if (_project.secure) {
-                _type = ' 🔐Secure';
-            } else if (_project.priority) {
-                _type = '⭐Priority';
-            } else if (_project.exclusive) {
-                _type = ' 💎Exclusive'
-            } else if (_project.nonRefundable) {
-                _type = ' 💤Non refundable';
+        // Send message with the import wallet button
+        let msg =
+        `KomBot | <a href="https://launchpad.kommunitas.net/">Launchpad</a>\n\n` +
+        `Kommunitas is a decentralized crowdfunding ecosystem specifically designed for Web 3.0 projects. \nWhile some might refer it as a "launchpad" or "IDO platform", Kommunitas strives to build something far greater—an expansive ecosystem that fosters innovation and collaboration. \nJoin us on this transformative journey as we redefine the possibilities of Polygon crypto launchpad. \nIf you encounter any difficulties, please visit this <b><i><u><a href='https://www.youtube.com/watch?v=iPE_J--gOdY'>YouTube tutorial</a></u></i></b> for step-by-step guidance.` +
+        `\n\n🏆 <b><i>Ended Projects (page: ${page}/${count})</i></b>`;
+
+        const _projectButtons = [];
+        for (let index = 0; index < _projects.length; index+=2) {
+            const _project0 = _projects[index];
+            const _project1 = _projects[index + 1];
+            if (_project1) {
+                _projectButtons.push([
+                    { text: `${(page - 1) * PAGE_LEN + index + 1}. ${_project0.name} ➡`, callback_data: `gotoEndedProject_project=IKO-${_project0.ticker}-${_project0.round}` },
+                    { text: `${(page - 1) * PAGE_LEN + index + 2}. ${_project1.name} ➡`, callback_data: `gotoEndedProject_project=IKO-${_project1.ticker}-${_project1.round}` },
+                ])
+            } else {
+                _projectButtons.push([
+                    { text: `${(page - 1) * PAGE_LEN + index + 1}. ${_project0.name} ➡`, callback_data: `gotoEndedProject_project=IKO-${_project0.ticker}-${_project0.round}` },
+                ])
             }
-            // social links
-            const socials = _project.social ? _project.social.map((item: { icon: string, link: string }) => ` <a href='${item.link}'>${CAMPAIGN_SOCIAL_NAMES[item.icon] ?? item.icon}</a>`).join(' | ') : '';
-            // campain links
-            const promos = _project.promo ? Object.entries(_project.promo).filter(([key, value]) => key !== 'research' && key !== 'banner').map(([key, value]) => ` <a href='${value}'>${CAMPAIGN_SOCIAL_NAMES[key] ?? key}</a>`).join(' | '): '';
-            // message
-            let msg =
-                `${(page - 1) * PAGE_LEN + i + 1}. 💎 ${_project.name} <b><i> ($${_project.ticker})</i></b>    <b><i><u>${_project.type.label}</u></i></b>\n\n` +
-                `- Round: <b><i>${_project.roundLabel}</i></b>\n` +
-                (_type ? `- Rules: <b><i>${_type}</i></b>\n\n`: '\n') +
-                promos + (promos.length > 0 ? '\n\n' : '') +
-                `<i>${_project.desc.substring(0, 200)} ...</i>\n\n` +
-                socials +
-                (_project.promo ? `\n\n🎓 <b><a href='${_project?.promo?.research}'>Research</a></b>\n\n` : '\n\n') +
-                `- <i>Total Supply</i>: <b>${_project.supply}</b>\n` +
-                `- <i>Initial Marketcap</i>: <b>${_project.marketcap}</b>\n` +
-                `- <i>Swap Rate</i>: <b>${_project.price}</b>\n\n` +
-                `💰 <i><u>Total Raised</u></i>:   <b>${formatNumber(_project.progress.sold * 100 / _project.progress.sale, 3)}%  [$${formatNumber(_project.progress.sold * _project.progress.price, 3)}]</b>\n` +
-                `⚡ <b>${formatNumber(_project.progress.sold, 3)} ${_project.ticker}  /  ${formatNumber(_project.progress.sale, 3)} ${_project.ticker}</b>\n\n` +
-                `- <i>Starts</i>: <b>${_project.calculation_time}</b>\n` +
-                `- <i>Target Raised</i>: <b>$${formatNumber(_project.target.total)}</b>\n\n` +
-                `<i>${_project.distribution}</i>` +
-                ``;
-            await ctx.replyWithPhoto(
-                _project.sale_card ? _project.sale_card : PLACE_HOLDER,
-                // { source: _project.buffer },
-                {
-                    caption: msg,
-                    parse_mode: "HTML",
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                { text: `Go to Project Details 👉`, callback_data: `gotoEndedProject_project=IKO-${_project.ticker}-${_project.round}` },
-                            ]
-                        ],
-                    },
-                    link_preview_options: {
-                        is_disabled: true
-                    }
-                }
-            );
         }
+        ctx.replyWithPhoto(
+            LAUNCHPAD_MAIN_LOGO,
+            {
+                caption: msg,
+                parse_mode: "HTML",
+                reply_markup: {
+                    inline_keyboard: [
+                        ..._projectButtons,
+                        [
+                            { text: '👈 back', callback_data: '👈 back' },
+                            { text: 'next 👉', callback_data: 'next 👉' },
+                        ]
+                    ],
+                    resize_keyboard: true,
+                },
+                link_preview_options: {
+                    is_disabled: true
+                }
+            }
+        );
+        // // page settings
+        // const projects = await getProjects('ended', address);
+        // const page = ctx.session.page ?? 1;
+        // const total = projects.length;
+        // const PAGE_LEN = 10;
+        // const { count, buttons } = getPaginationButtons(total, PAGE_LEN, page);
+
+        // await ctx.reply(
+        //     '⏰ Loading Projects Details...',
+        //     {
+        //         reply_markup: {
+        //             keyboard: [buttons, [{ text: '👈 Back to Launchpad' }]], resize_keyboard: true
+        //         },
+        //     }
+        // );
+        // // slice for page and get progress details
+        // const _projects: IProject[] = await Promise.all(projects.slice((page - 1) * PAGE_LEN, page * PAGE_LEN).map(async (_item: IProject) => ({
+        //     ..._item,
+        //     progress: _item.project ? await getProjectProgress(_item.project, _item.tokenDecimal) : {
+        //         price: 1,
+        //         sale: Number(utils.formatUnits(_item.sale, _item.tokenDecimal)),
+        //         sold: Number(utils.formatUnits(_item.sold, _item.tokenDecimal)),
+        //     }
+        // })));
+        // // show list of active projects
+        // for (let i = 0; i < _projects.length; i++) {
+        //     const _project: IProject = _projects[i];
+        //     // project types
+        //     let _type = '';
+        //     if (_project.secure) {
+        //         _type = ' 🔐Secure';
+        //     } else if (_project.priority) {
+        //         _type = '⭐Priority';
+        //     } else if (_project.exclusive) {
+        //         _type = ' 💎Exclusive'
+        //     } else if (_project.nonRefundable) {
+        //         _type = ' 💤Non refundable';
+        //     }
+        //     // social links
+        //     const socials = _project.social ? _project.social.map((item: { icon: string, link: string }) => ` <a href='${item.link}'>${CAMPAIGN_SOCIAL_NAMES[item.icon] ?? item.icon}</a>`).join(' | ') : '';
+        //     // campain links
+        //     const promos = _project.promo ? Object.entries(_project.promo).filter(([key, value]) => key !== 'research' && key !== 'banner').map(([key, value]) => ` <a href='${value}'>${CAMPAIGN_SOCIAL_NAMES[key] ?? key}</a>`).join(' | '): '';
+        //     // message
+        //     let msg =
+        //         `${(page - 1) * PAGE_LEN + i + 1}. 💎 ${_project.name} <b><i> ($${_project.ticker})</i></b>    <b><i><u>${_project.type.label}</u></i></b>\n\n` +
+        //         `- Round: <b><i>${_project.roundLabel}</i></b>\n` +
+        //         (_type ? `- Rules: <b><i>${_type}</i></b>\n\n`: '\n') +
+        //         promos + (promos.length > 0 ? '\n\n' : '') +
+        //         `<i>${_project.desc.substring(0, 200)} ...</i>\n\n` +
+        //         socials +
+        //         (_project.promo ? `\n\n🎓 <b><a href='${_project?.promo?.research}'>Research</a></b>\n\n` : '\n\n') +
+        //         `- <i>Total Supply</i>: <b>${_project.supply}</b>\n` +
+        //         `- <i>Initial Marketcap</i>: <b>${_project.marketcap}</b>\n` +
+        //         `- <i>Swap Rate</i>: <b>${_project.price}</b>\n\n` +
+        //         `💰 <i><u>Total Raised</u></i>:   <b>${formatNumber(_project.progress.sold * 100 / _project.progress.sale, 3)}%  [$${formatNumber(_project.progress.sold * _project.progress.price, 3)}]</b>\n` +
+        //         `⚡ <b>${formatNumber(_project.progress.sold, 3)} ${_project.ticker}  /  ${formatNumber(_project.progress.sale, 3)} ${_project.ticker}</b>\n\n` +
+        //         `- <i>Starts</i>: <b>${_project.calculation_time}</b>\n` +
+        //         `- <i>Target Raised</i>: <b>$${formatNumber(_project.target.total)}</b>\n\n` +
+        //         `<i>${_project.distribution}</i>` +
+        //         ``;
+        //     await ctx.replyWithPhoto(
+        //         _project.sale_card ? _project.sale_card : PLACE_HOLDER,
+        //         // { source: _project.buffer },
+        //         {
+        //             caption: msg,
+        //             parse_mode: "HTML",
+        //             reply_markup: {
+        //                 inline_keyboard: [
+        //                     [
+        //                         { text: `Go to Project Details 👉`, callback_data: `gotoEndedProject_project=IKO-${_project.ticker}-${_project.round}` },
+        //                     ]
+        //                 ],
+        //             },
+        //             link_preview_options: {
+        //                 is_disabled: true
+        //             }
+        //         }
+        //     );
+        // }
     } catch (err) {
         console.log(err);
         ctx.reply("⚠ Failed to load...")

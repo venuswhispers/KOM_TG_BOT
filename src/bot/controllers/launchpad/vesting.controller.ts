@@ -6,7 +6,7 @@ import { CHAIN_BALANCE, CLAIM_PROJECT, IProject, ROUND_DETAIL } from "@/types";
 import { startNoWallet } from "../main.controller";
 import { CAMPAIGN_SOCIAL_NAMES } from "@/constants/utils";
 import { Markup } from "telegraf";
-import { PLACE_HOLDER } from "@/constants/pictures";
+import { LAUNCHPAD_MAIN_LOGO, PLACE_HOLDER } from "@/constants/pictures";
 import { ethers, utils } from "ethers";
 import ERC20_ABI from '@/constants/abis/tokens/ERC20.json';
 import { _toEscapedUtf8String } from "ethers/lib/utils";
@@ -17,74 +17,130 @@ export const menu = async (ctx: any) => {
 
         ctx.session.currentLaunchpadType = 'vesting';
         const chainId = ctx.session.chainId ?? 137;
-        // if (!ctx.session.account) {
-        //     return startNoWallet(ctx);
-        // } else if (chainId !== 137 && chainId !== 42161) {
-        //     return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
-        // }
-        // const { address, name } = ctx.session.account;
-        const { address, name } = {
-            address: '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3',
-            name: 'test'
-        };
+        if (!ctx.session.account) {
+            return startNoWallet(ctx);
+        } else if (chainId !== 137 && chainId !== 42161) {
+            return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
+        }
+        const { address, name } = ctx.session.account;
+
         await ctx.reply("⏱ Loading Vesting Projects...");
-        // page settings
-        const projects: CLAIM_PROJECT[] = await getProjects('vesting', address);
-        const page = ctx.session.page ?? 1;
+        const projects = await getProjects('vesting', address);
+        const _page = ctx.session.page ?? 1;
         const total = projects.length;
         const PAGE_LEN = 10;
-        const { count, buttons } = getPaginationButtons(total, PAGE_LEN, page);
+        const { count, buttons, page } = getPaginationButtons(total, PAGE_LEN, _page);
 
         await ctx.reply(
             '⏰ Loading Projects Details...',
             {
-                reply_markup: {
-                    keyboard: [buttons, [{ text: '👈 Back to Launchpad' }]], resize_keyboard: true
-                },
+                reply_markup: { keyboard: [[{ text: '👈 Back to Launchpad' }]], resize_keyboard: true },
             }
         );
-        // show list of active projects
-        for (let i = 0; i < projects.slice((page - 1) * PAGE_LEN, page * PAGE_LEN).length; i++) {
-            const _project: CLAIM_PROJECT = projects[i];
-            // project types
-            let _type = '';
-            if (_project.secure) {
-                _type = ' 🔐Secure';
-            } else if (_project.priority) {
-                _type = ' ⭐Priority';
-            } else if (_project.exclusive) {
-                _type = ' 💎Exclusive'
-            } else if (_project.nonRefundable) {
-                _type = ' 💤Non refundable';
+        // slice for page and get progress details
+        const _projects: IProject[] = await Promise.all(projects.slice((page - 1) * PAGE_LEN, page * PAGE_LEN).map(async (_item: IProject) => ({
+            ..._item,
+            // progress: await getProjectProgress(_item.project, _item.tokenDecimal)
+        })));
+        // Send message with the import wallet button
+        let msg =
+        `KomBot | <a href="https://launchpad.kommunitas.net/">Launchpad</a>\n\n` +
+        `Kommunitas is a decentralized crowdfunding ecosystem specifically designed for Web 3.0 projects. \nWhile some might refer it as a "launchpad" or "IDO platform", Kommunitas strives to build something far greater—an expansive ecosystem that fosters innovation and collaboration. \nJoin us on this transformative journey as we redefine the possibilities of Polygon crypto launchpad. \nIf you encounter any difficulties, please visit this <b><i><u><a href='https://www.youtube.com/watch?v=iPE_J--gOdY'>YouTube tutorial</a></u></i></b> for step-by-step guidance.` +
+        `\n\n🏆 <b><i>Vesting Projects (page: ${page}/${count})</i></b>`;
+
+        const _projectButtons = [];
+        for (let index = 0; index < _projects.length; index+=2) {
+            const _project0 = _projects[index];
+            const _project1 = _projects[index + 1];
+            if (_project1) {
+                _projectButtons.push([
+                    { text: `${(page - 1) * PAGE_LEN + index + 1}. ${_project0.name} ➡`, callback_data: `gotoVestingProject_project=IKO-${_project0.ticker}-${_project0.round}` },
+                    { text: `${(page - 1) * PAGE_LEN + index + 2}. ${_project1.name} ➡`, callback_data: `gotoVestingProject_project=IKO-${_project1.ticker}-${_project1.round}` },
+                ])
+            } else {
+                _projectButtons.push([
+                    { text: `${(page - 1) * PAGE_LEN + index + 1}. ${_project0.name} ➡`, callback_data: `gotoVestingProject_project=IKO-${_project0.ticker}-${_project0.round}` },
+                ])
             }
-            // message
-            let msg =
-                `${(page - 1) * PAGE_LEN + i + 1}. 💎 ${_project.name} <b><i> ($${_project.ticker})</i></b>    <b><i><u>${_project.type.label}</u></i></b>\n\n` +
-                `- Round: <b><i>${_project.roundLabel}</i></b>\n` +
-                `- Rules: <b><i>${_type}</i></b>\n\n` +
-                `- <i>⛽ Vesting</i>: <b><i>${_project.vesting}</i></b>\n` +
-                `- <i>🧨 Refund Period</i>: <b><i>${_project.refund}</i></b>\n` +
-                (_project.claim.finished ? `<b><i>⚠ Not Claimable</i></b>\n\n` : '') +
-                ``;
-            await ctx.replyWithPhoto(
-                _project.vesting_card ? _project.vesting_card : PLACE_HOLDER,
-                // { source: _project.buffer },
-                {
-                    caption: msg,
-                    parse_mode: "HTML",
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                { text: `Go to Project 👉`, callback_data: `gotoVestingProject_project=IKO-${_project.ticker}-${_project.round}` },
-                            ]
-                        ],
-                    },
-                    link_preview_options: {
-                        is_disabled: true
-                    }
-                }
-            );
         }
+        ctx.replyWithPhoto(
+            LAUNCHPAD_MAIN_LOGO,
+            {
+                caption: msg,
+                parse_mode: "HTML",
+                reply_markup: {
+                    inline_keyboard: [
+                        ..._projectButtons,
+                        [
+                            { text: '👈 back', callback_data: '👈 back' },
+                            { text: 'next 👉', callback_data: 'next 👉' },
+                        ]
+                    ],
+                    resize_keyboard: true,
+                },
+                link_preview_options: {
+                    is_disabled: true
+                }
+            }
+        );
+        // await ctx.reply("⏱ Loading Vesting Projects...");
+        // // page settings
+        // const projects: CLAIM_PROJECT[] = await getProjects('vesting', address);
+        // const page = ctx.session.page ?? 1;
+        // const total = projects.length;
+        // const PAGE_LEN = 10;
+        // const { count, buttons } = getPaginationButtons(total, PAGE_LEN, page);
+
+        // await ctx.reply(
+        //     '⏰ Loading Projects Details...',
+        //     {
+        //         reply_markup: {
+        //             keyboard: [buttons, [{ text: '👈 Back to Launchpad' }]], resize_keyboard: true
+        //         },
+        //     }
+        // );
+        // // show list of active projects
+        // for (let i = 0; i < projects.slice((page - 1) * PAGE_LEN, page * PAGE_LEN).length; i++) {
+        //     const _project: CLAIM_PROJECT = projects[i];
+        //     // project types
+        //     let _type = '';
+        //     if (_project.secure) {
+        //         _type = ' 🔐Secure';
+        //     } else if (_project.priority) {
+        //         _type = ' ⭐Priority';
+        //     } else if (_project.exclusive) {
+        //         _type = ' 💎Exclusive'
+        //     } else if (_project.nonRefundable) {
+        //         _type = ' 💤Non refundable';
+        //     }
+        //     // message
+        //     let msg =
+        //         `${(page - 1) * PAGE_LEN + i + 1}. 💎 ${_project.name} <b><i> ($${_project.ticker})</i></b>    <b><i><u>${_project.type.label}</u></i></b>\n\n` +
+        //         `- Round: <b><i>${_project.roundLabel}</i></b>\n` +
+        //         `- Rules: <b><i>${_type}</i></b>\n\n` +
+        //         `- <i>⛽ Vesting</i>: <b><i>${_project.vesting}</i></b>\n` +
+        //         `- <i>🧨 Refund Period</i>: <b><i>${_project.refund}</i></b>\n` +
+        //         (_project.claim.finished ? `<b><i>⚠ Not Claimable</i></b>\n\n` : '') +
+        //         ``;
+        //     await ctx.replyWithPhoto(
+        //         _project.vesting_card ? _project.vesting_card : PLACE_HOLDER,
+        //         // { source: _project.buffer },
+        //         {
+        //             caption: msg,
+        //             parse_mode: "HTML",
+        //             reply_markup: {
+        //                 inline_keyboard: [
+        //                     [
+        //                         { text: `Go to Project 👉`, callback_data: `gotoVestingProject_project=IKO-${_project.ticker}-${_project.round}` },
+        //                     ]
+        //                 ],
+        //             },
+        //             link_preview_options: {
+        //                 is_disabled: true
+        //             }
+        //         }
+        //     );
+        // }
     } catch (err) {
         console.log(err);
         ctx.reply("⚠ Failed to load...")
@@ -483,7 +539,6 @@ const vestWithV6 = async (header: string, id: string, decimal: number, { ctx, tr
     try {
 
         let message = '';
-        // _user = '0xb5E26Aa162B99e21a1314122361fD953E2f183BC'
         let claimable = false, refundable = false, ownerClaimable = false;
         if (address) {
             const _chain = chains[chain];
@@ -1095,11 +1150,6 @@ export const detail = async (ctx: any, id: string) => {
             return ctx.reply("⚠ Please switch to Polygon or Arbitrum network");
         }
         const { address, name } = ctx.session.account;
-        // const { address, name } = {
-        //     // address: '0xeB5768D449a24d0cEb71A8149910C1E02F12e320',
-        //     address: '0xabe34cE4f1423CD9025DB7Eb7637a08AF60d4Af3',
-        //     name: 'test'
-        // };
         await ctx.reply(
             `⏱ Loading ${id}'s details ...`,
             {
